@@ -13,6 +13,7 @@ contract Library is Ownable {
     mapping (uint => uint) hashToBookIndex;
     uint public totalBooks = 0;
 
+    event BookUpdated(Book book);
     event BookAdded(Book book);
 
     function addBook(Book memory _book) onlyOwner public {
@@ -34,6 +35,7 @@ contract Library is Ownable {
         uint index = hashToBookIndex[bookHash];
         Book storage book = indexToBooks[index];
         book.copies = _newCopiesValue;
+        emit BookUpdated(book);
     }
 
     function getBook(uint _index) external view returns (Book memory) {
