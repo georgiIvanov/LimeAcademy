@@ -8,7 +8,6 @@ struct Book {
 }
 
 contract Library is Ownable {
-    mapping (uint => bool) hashToBookExists;
     mapping (uint => Book) indexToBooks;
     mapping (uint => uint) hashToBookIndex;
     uint public totalBooks = 0;
@@ -25,10 +24,9 @@ contract Library is Ownable {
         require(bytes(_book.name).length > 0, "Book must have a name.");
         uint bookHash = calculateBookHash(_book.name);
         
-        require(hashToBookExists[bookHash] == false, "Book is already in library.");
+        require(bookExists(bookHash) == false, "Book is already in library.");
         indexToBooks[totalBooks] = _book;
         hashToBookIndex[bookHash] = totalBooks;
-        hashToBookExists[bookHash] = true;
         totalBooks++;
         emit BookAdded(_book);
     }
@@ -36,7 +34,7 @@ contract Library is Ownable {
     function updateCopies(string memory _bookName, uint16 _newCopiesValue) onlyOwner public {
         uint bookHash = calculateBookHash(_bookName);
 
-        require(hashToBookExists[bookHash], "Book is not in library.");
+        require(bookExists(bookHash), "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
         Book storage book = indexToBooks[index];
         book.copies = _newCopiesValue;
@@ -46,7 +44,7 @@ contract Library is Ownable {
     function borrowBook(string memory _bookName) public {
         uint bookHash = calculateBookHash(_bookName);
 
-        require(hashToBookExists[bookHash], "Book is not in library.");
+        require(bookExists(bookHash), "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
         Book storage book = indexToBooks[index];
 
@@ -63,7 +61,7 @@ contract Library is Ownable {
     function returnBook(string memory _bookName) public {
         uint bookHash = calculateBookHash(_bookName);
 
-        require(hashToBookExists[bookHash], "Book is not in library.");
+        require(bookExists(bookHash), "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
         uint[] storage borrowedIndices = borrowedByUsers[msg.sender];
         
@@ -84,9 +82,9 @@ contract Library is Ownable {
         }
     }
 
-    function borrowHistory(string memory _bookName) public view returns (address[] memory) {
+    function borrowHistory(string memory _bookName) public returns (address[] memory) {
         uint bookHash = calculateBookHash(_bookName);
-        require(hashToBookExists[bookHash], "Book is not in library.");
+        require(bookExists(bookHash), "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
         return bookIndexToBorrowHistory[index];
     }
@@ -119,5 +117,14 @@ contract Library is Ownable {
         }
 
         return false;
+    }
+
+    event Log(uint value);
+    function bookExists(uint bookHash) internal returns(bool) {
+        uint index = hashToBookIndex[bookHash];
+        emit Log(bookHash);
+        emit Log(index);
+        bytes memory nameBytes = bytes(indexToBooks[index].name);
+        return nameBytes.length > 0;
     }
 }
