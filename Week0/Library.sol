@@ -13,6 +13,7 @@ contract Library is Ownable {
     mapping (uint => uint) hashToBookIndex;
     uint public totalBooks = 0;
     mapping (address => uint[]) borrowedByUsers;
+    mapping (uint => address[]) bookIndexToBorrowHistory;
 
     event BookUpdated(Book book);
     event BookAdded(Book book);
@@ -55,6 +56,7 @@ contract Library is Ownable {
         require(bookIsBorrowed(borrowedIndices, index) == false, "Same book cannot be borrowed twice.");
         book.copies--;
         borrowedByUsers[msg.sender].push(index);
+        bookIndexToBorrowHistory[index].push(msg.sender);
         emit BookBorrowed(book);
     }
 
@@ -80,6 +82,13 @@ contract Library is Ownable {
                 break;
             }
         }
+    }
+
+    function borrowHistory(string memory _bookName) public view returns (address[] memory) {
+        uint bookHash = calculateBookHash(_bookName);
+        require(hashToBookExists[bookHash], "Book is not in library.");
+        uint index = hashToBookIndex[bookHash];
+        return bookIndexToBorrowHistory[index];
     }
 
     function getBook(uint _index) external view returns (Book memory) {
