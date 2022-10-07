@@ -17,6 +17,7 @@ contract Library is Ownable {
     event BookUpdated(Book book);
     event BookAdded(Book book);
     event BookBorrowed(Book book);
+    event BookReturned(Book book);
 
     function addBook(Book memory _book) onlyOwner public {
         require(_book.copies > 0, "Book should have at least one copy.");
@@ -55,6 +56,30 @@ contract Library is Ownable {
         book.copies--;
         borrowedByUsers[msg.sender].push(index);
         emit BookBorrowed(book);
+    }
+
+    function returnBook(string memory _bookName) public {
+        uint bookHash = calculateBookHash(_bookName);
+
+        require(hashToBookExists[bookHash], "Book is not in library.");
+        uint index = hashToBookIndex[bookHash];
+        uint[] storage borrowedIndices = borrowedByUsers[msg.sender];
+        
+        require(bookIsBorrowed(borrowedIndices, index), "Cannot return a book that's not borrowed.");
+        Book storage book = indexToBooks[index];
+        book.copies++;
+        removeFromBorrowedByUsers(borrowedIndices, index);
+        emit BookReturned(book);
+    }
+
+    function removeFromBorrowedByUsers(uint[] storage _borrowedByUser, uint _bookIndex) internal {
+        for(uint i = 0; i < _borrowedByUser.length; i++) {
+            if(_borrowedByUser[i] == _bookIndex) {
+                _borrowedByUser[i] = _borrowedByUser[_borrowedByUser.length - 1];
+                _borrowedByUser.pop();
+                break;
+            }
+        }
     }
 
     function getBook(uint _index) external view returns (Book memory) {
