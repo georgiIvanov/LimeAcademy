@@ -18,7 +18,7 @@ contract Library is Ownable {
     function addBook(Book memory _book) onlyOwner public {
         require(_book.copies > 0, "Book should have at least one copy.");
         require(bytes(_book.name).length > 0, "Book must have a name.");
-        uint bookHash = calculateBookHash(_book);
+        uint bookHash = calculateBookHash(_book.name);
         require(hashToBookExists[bookHash] == false, "Book is already in library.");
 
         indexToBooks[totalBooks] = _book;
@@ -26,6 +26,14 @@ contract Library is Ownable {
         hashToBookExists[bookHash] = true;
         totalBooks++;
         emit BookAdded(_book);
+    }
+
+    function updateCopies(string memory _bookName, uint16 _newCopiesValue) onlyOwner public {
+        uint bookHash = calculateBookHash(_bookName);
+        require(hashToBookExists[bookHash], "Book is not in library.");
+        uint index = hashToBookIndex[bookHash];
+        Book storage book = indexToBooks[index];
+        book.copies = _newCopiesValue;
     }
 
     function getBook(uint _index) external view returns (Book memory) {
@@ -43,8 +51,8 @@ contract Library is Ownable {
         return books;
     }
 
-    function calculateBookHash(Book memory _book) internal pure returns(uint) {
-        bytes32 val = sha256(abi.encodePacked(_book.name));
+    function calculateBookHash(string memory _bookName) internal pure returns(uint) {
+        bytes32 val = sha256(abi.encodePacked(_bookName));
         return uint(val);
     }
 }
