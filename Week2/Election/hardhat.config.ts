@@ -1,4 +1,4 @@
-import { HardhatUserConfig, task } from "hardhat/config";
+import { HardhatUserConfig, subtask, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import { main } from './scripts/deploy';
 
@@ -24,5 +24,15 @@ export default config;
 
 task('deploy-testnets', 'Deploys contract on a provided network')
 .setAction(async (args, hre, runSuper) => {
-  main(hre);
+  await main(hre);
+  // Example on running a sub-task
+  await hre.run('print', { message: 'Subtask: Done! '});
+});
+
+// The only difference from a task is that sub-task is not
+// included in help messages.
+subtask('print', 'Prints a message')
+.addParam('message', 'The message to print')
+.setAction(async (args) => {
+  console.log(args.message);
 });

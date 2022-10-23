@@ -2,7 +2,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export async function main(hre: HardhatRuntimeEnvironment) {
-  hre.run('compile');
+  await hre.run('compile');
   const [deployer] = await hre.ethers.getSigners();
 
   console.log('Deploying contracts with the account:', deployer.address);
