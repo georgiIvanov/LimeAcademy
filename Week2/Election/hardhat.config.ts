@@ -1,5 +1,6 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import { main } from './scripts/deploy';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -20,3 +21,8 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
+
+task('deploy-testnets', 'Deploys contract on a provided network')
+.setAction(async (args, hre, runSuper) => {
+  main(hre);
+});
