@@ -23,4 +23,6 @@ export const deployWithParams = async (hre: HardhatRuntimeEnvironment, privateKe
   const usElection = await USElectionFactory.deploy();
   console.log('USElection Contract address: ', usElection.address);
   console.log('Done!');
+
+  await hre.run('verify:verify', {address: usElection.address});
 }

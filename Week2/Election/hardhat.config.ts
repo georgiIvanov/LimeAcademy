@@ -1,5 +1,6 @@
 import { HardhatUserConfig, subtask, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import '@nomiclabs/hardhat-etherscan';
 import { main, deployWithParams } from './scripts/deploy';
 
 const config: HardhatUserConfig = {
@@ -13,10 +14,17 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
+    localhost: {
+      url: 'http://127.0.0.1:8545/'
+    },
     rinkeby: {
       url: "https://goerli.infura.io/v3/cfcc633692a3413eb62f966cd67d45cf",
-      accounts: ['ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80']
-    }
+      accounts: ['ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
+      gas: 100_000_000
+    },
+  },
+  etherscan: {
+    apiKey: 'CHIRAADNUI814XIT9ST36R63UFNBNDKBDY'
   }
 };
 
