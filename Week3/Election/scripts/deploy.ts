@@ -30,6 +30,7 @@ export const deployWithParams = async (hre: HardhatRuntimeEnvironment, privateKe
 
 // Deploys contract to localhost
 export const deployContract = async (hre: HardhatRuntimeEnvironment, privateKey: string) => {
+  await hre.run('compile');
   const provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545/');
   const wallet = new hre.ethers.Wallet(privateKey, provider);
   const USElectionFactory = await hre.ethers.getContractFactory("USElection", wallet);
