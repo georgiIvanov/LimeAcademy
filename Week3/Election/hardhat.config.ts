@@ -2,6 +2,7 @@ import { HardhatUserConfig, subtask, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@nomiclabs/hardhat-etherscan';
 import { main, deployWithParams } from './scripts/deploy';
+import { hardhatRun } from './scripts/interact';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -29,6 +30,12 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
+
+task('interact', 'Interacts with election contract')
+.setAction(async (args, hre, runSuper) => {
+  await hardhatRun(hre);
+  await hre.run('print', { message: 'Interact task done! '});
+});
 
 task('deploy-testnets', 'Deploys contract on a provided network')
 .setAction(async (args, hre, runSuper) => {
