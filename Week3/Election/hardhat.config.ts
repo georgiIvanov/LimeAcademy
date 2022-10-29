@@ -1,7 +1,7 @@
 import { HardhatUserConfig, subtask, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@nomiclabs/hardhat-etherscan';
-import { main, deployWithParams } from './scripts/deploy';
+import { main, deployWithParams, deployContract } from './scripts/deploy';
 import { hardhatRun } from './scripts/interact';
 
 const config: HardhatUserConfig = {
@@ -48,6 +48,12 @@ task('deploy-mainnet', 'Deploys contract on a provided network')
 .addParam('privateKey', 'Please provide the private key')
 .setAction(async (args: { privateKey: string }, hre) => {
   await deployWithParams(hre, args.privateKey);
+});
+
+task('deploy-localhost', 'Deploys contract on a local node')
+.addParam('privateKey', 'Please provide the private key')
+.setAction(async (args: { privateKey: string }, hre) => {
+  await deployContract(hre, args.privateKey);
 });
 
 // The only difference from a task is that sub-task is not

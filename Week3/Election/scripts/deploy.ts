@@ -1,4 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { HardhatEthersHelpers, HardhatRuntimeEnvironment } from "hardhat/types";
+import { ethers } from "hardhat";
 
 export const main = async (hre: HardhatRuntimeEnvironment) => {
   await hre.run('compile');
@@ -26,3 +27,13 @@ export const deployWithParams = async (hre: HardhatRuntimeEnvironment, privateKe
 
   await hre.run('verify:verify', {address: usElection.address});
 }
+
+// Deploys contract to localhost
+export const deployContract = async (hre: HardhatRuntimeEnvironment, privateKey: string) => {
+  const provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545/');
+  const wallet = new hre.ethers.Wallet(privateKey, provider);
+  const USElectionFactory = await hre.ethers.getContractFactory("USElection", wallet);
+  const usElection = await USElectionFactory.deploy();
+  console.log('USElection Contract address: ', usElection.address);
+}
+

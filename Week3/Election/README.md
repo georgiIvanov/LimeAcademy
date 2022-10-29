@@ -12,5 +12,8 @@ We're using it to explore how to work with ethers.js
 First, run a local node:
 `npx hardhat node`
 
+Second, deploy the election contract:
+`npx hardhat deploy-localhost --private-key [value]`
+
 Then run
 `npx hardhat interact`
