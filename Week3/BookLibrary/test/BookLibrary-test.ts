@@ -170,4 +170,17 @@ describe('BookLibrary usage', () => {
     expect(book2.copies).to.equal(1);
   });
 
+  it('Should check if book is borrowed', async () => {
+    let owner = await helpers.owner();
+    await bookLibrary.borrowBook('Some book');
+    var borrowed = await bookLibrary.bookIsBorroweByUser('Some book', owner.address);
+    expect(borrowed).to.equal(true);
+
+    await bookLibrary.returnBook('Some book');
+    borrowed = await bookLibrary.bookIsBorroweByUser('Some book', owner.address);
+    expect(borrowed).to.equal(false);
+
+    await expect(bookLibrary.bookIsBorroweByUser('Unexisting', owner.address))
+    .to.be.revertedWith('Book is not in library.');
+  });
 });
