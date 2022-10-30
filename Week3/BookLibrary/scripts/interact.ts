@@ -1,5 +1,4 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ethers } from 'hardhat';
 import { BookLibrary, BookLibrary__factory } from '../typechain-types';
 
 

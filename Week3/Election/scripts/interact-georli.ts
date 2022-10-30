@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { ethers } from 'hardhat';
-import { USElection, USElection__factory } from '../typechain-types';
+import { USElection__factory } from '../typechain-types';
 
 
 export const georliRun = async (hre: HardhatRuntimeEnvironment) => {

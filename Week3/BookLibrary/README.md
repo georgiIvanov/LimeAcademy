@@ -1,6 +1,13 @@
-# BookLibrary
+# BookLibrary Week3
 
 Book library contract written in Solidity.
+
+## Interact
+Localhost
+`npx hardhat interact`
+
+Goerli
+`npx hardhat interact-goerli`
 
 ## Deploy contract on Goerli network
 1. Create `.env` file at root directory
