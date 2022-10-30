@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { BookLibrary, BookLibrary__factory } from '../typechain-types';
+import * as helpers from './TestHelpers';
 
 describe('BookLibrary usage', () => {
   let bookLibraryFactory: BookLibrary__factory;
@@ -34,7 +35,7 @@ describe('BookLibrary usage', () => {
   });
 
   it('User tries to add a book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.addBook({name: "User's book", copies: 10}))
     .to.be.revertedWith('Ownable: caller is not the owner');
     expect(await bookLibrary.totalBooks()).to.equal(1);
@@ -65,33 +66,33 @@ describe('BookLibrary usage', () => {
   });
 
   it('User tries to update book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.updateCopies('Some book', 99))
     .to.revertedWith('Ownable: caller is not the owner');
   });
 
   it('Borrows book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.borrowBook('Some book'))
     .to.emit(userLibrary, 'BookBorrowed')
     .withArgs(['Some book', 4]);
   });
 
   it('Returns book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.returnBook('Some book'))
     .to.emit(userLibrary, 'BookReturned')
     .withArgs(['Some book', 5]);
   });
 
   it('Tries to borrow unexisting book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.borrowBook('Invalid book'))
     .to.be.revertedWith('Book is not in library.');
   });
 
   it('Tries to borrow book twice', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.borrowBook('Some book'))
     .to.emit(userLibrary, 'BookBorrowed')
     .withArgs(['Some book', 4]);
@@ -103,18 +104,18 @@ describe('BookLibrary usage', () => {
   it('Tries to borrow book when no copies', async () => {
     await bookLibrary.addBook({name: "Few copies", copies: 1});
 
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.borrowBook('Few copies'))
     .to.emit(userLibrary, 'BookBorrowed')
     .withArgs(['Few copies', 0]);
 
-    let secondUserLibrary = bookLibrary.connect(await user2());
+    let secondUserLibrary = bookLibrary.connect(await helpers.user2());
     await expect(secondUserLibrary.borrowBook('Few copies'))
     .to.be.revertedWith('No more copies left in library.');
   });
 
   it('Tries to return book twice', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.returnBook('Few copies'))
     .to.emit(userLibrary, 'BookReturned')
     .withArgs(['Few copies', 1]);
@@ -124,7 +125,7 @@ describe('BookLibrary usage', () => {
   });
 
   it('Tries to return unexisting book', async () => {
-    let userLibrary = bookLibrary.connect(await user1());
+    let userLibrary = bookLibrary.connect(await helpers.user1());
     await expect(userLibrary.returnBook('Some unexisting book'))
     .to.be.revertedWith("Book is not in library.");
   });
@@ -170,15 +171,3 @@ describe('BookLibrary usage', () => {
   });
 
 });
-
-let owner = async () => {
-  return (await ethers.getSigners())[0];
-}
-
-let user1 = async () => {
-  return (await ethers.getSigners())[1];
-}
-
-let user2 = async () => {
-  return (await ethers.getSigners())[2];
-}

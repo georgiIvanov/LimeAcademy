@@ -102,8 +102,7 @@ contract BookLibrary is Ownable {
         uint start = _offset;
         uint end = _offset + pageSize;
         end = min(end, history.borrowsIndex - 1);
-        uint arraySize = end - start + 1;
-
+        uint arraySize = min(end - start + 1, pageSize);
         address[] memory userBorrowHistory = new address[](arraySize);
         for (uint i = 0; i < arraySize; i++) {
             userBorrowHistory[i] = history.indexToUser[start];
@@ -127,7 +126,7 @@ contract BookLibrary is Ownable {
         uint start = _offset;
         uint end = _offset + pageSize;
         end = min(end, totalBooks - 1);
-        uint arraySize = end - start + 1;
+        uint arraySize = min(end - start + 1, pageSize);
         Book[] memory books = new Book[](arraySize);
 
         for (uint i = 0; i < arraySize; i++) {
