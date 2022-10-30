@@ -13,7 +13,7 @@ describe('BookLibrary usage', () => {
 
   it('Should have expected initial state', async () => {
     expect(await bookLibrary.totalBooks()).to.equal(0);
-    expect(await bookLibrary.allBooks()).be.empty;
+    expect(await bookLibrary.allBooks(0)).be.empty;
   });
 
   it('Owner adds a book', async () => {    
@@ -143,10 +143,32 @@ describe('BookLibrary usage', () => {
     // ]);
   });
 
+  it('Shows borrow history offset 1', async () => {
+    let history = await bookLibrary.borrowHistory('Some book', 1);
+    expect(history[0]).to.equal('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
+    expect(history.length).to.equal(1);
+  });
+
   it('Tries to get borrow history for non-existing', async () => {
     await expect(bookLibrary.borrowHistory('Not existing book', 0))
     .to.revertedWith('Book is not in library.');
   });
+
+  it('Should get all books', async () => {
+    expect(await bookLibrary.totalBooks()).to.equal(2);
+    const [book1, book2] = await bookLibrary.allBooks(0);
+    expect(book1.name).to.equal('Some book');
+    expect(book1.copies).to.equal(4);
+    expect(book2.name).to.equal('Few copies');
+    expect(book2.copies).to.equal(1);
+  });
+
+  it('Should get all books offset 1', async () => {
+    const [book2] = await bookLibrary.allBooks(1);
+    expect(book2.name).to.equal('Few copies');
+    expect(book2.copies).to.equal(1);
+  });
+
 });
 
 let owner = async () => {

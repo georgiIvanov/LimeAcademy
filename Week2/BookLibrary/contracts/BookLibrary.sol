@@ -19,6 +19,7 @@ contract BookLibrary is Ownable {
     mapping (uint => Book) indexToBooks;
     mapping (uint => uint) hashToBookIndex;
     uint public totalBooks = 0;
+    uint public constant pageSize = 20; 
 
     // User address -> Book index -> isBorrowed
     mapping (address => mapping (uint => bool)) borrowedByUsers;
@@ -95,18 +96,18 @@ contract BookLibrary is Ownable {
         uint bookHash = calculateBookHash(_bookName);
         require(hashToBookExists[bookHash], "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
-        uint16 maxCount = 20;
         BorrowHistory storage history = bookIndexToBorrowHistory[index];
-        require(_offset < history.borrowsIndex - 1, 'Offset should be less than amount of borrowed books.');
+        require(_offset < history.borrowsIndex, 'Offset should be less than amount of borrowed books.');
 
         uint start = _offset;
-        uint end = _offset + maxCount;
+        uint end = _offset + pageSize;
         end = min(end, history.borrowsIndex - 1);
         uint arraySize = end - start + 1;
 
         address[] memory userBorrowHistory = new address[](arraySize);
-        for (uint i = start; i <= end; i++) {
-            userBorrowHistory[i] = history.indexToUser[i];
+        for (uint i = 0; i < arraySize; i++) {
+            userBorrowHistory[i] = history.indexToUser[start];
+            start++;
         }
         
         return userBorrowHistory;
@@ -117,13 +118,23 @@ contract BookLibrary is Ownable {
         return result;
     }
 
-    function allBooks() external view returns(Book[] memory) {
-        uint totalCount = totalBooks;
-        Book[] memory books = new Book[](totalCount);
-
-        for (uint i = 0; i < totalCount; i++) {
-            books[i] = indexToBooks[i];
+    // Returns a maximum of 20 books
+    function allBooks(uint _offset) external view returns(Book[] memory) {
+        if (totalBooks == 0) {
+            return new Book[](0);
         }
+        
+        uint start = _offset;
+        uint end = _offset + pageSize;
+        end = min(end, totalBooks - 1);
+        uint arraySize = end - start + 1;
+        Book[] memory books = new Book[](arraySize);
+
+        for (uint i = 0; i < arraySize; i++) {
+            books[i] = indexToBooks[start];
+            start++;
+        }
+
         return books;
     }
 
