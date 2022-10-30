@@ -3,6 +3,9 @@ import "@nomicfoundation/hardhat-toolbox";
 import '@nomiclabs/hardhat-etherscan';
 import { main, deployWithParams, deployContract } from './scripts/deploy';
 import { hardhatRun } from './scripts/interact';
+import dotenv from "dotenv"
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -18,10 +21,9 @@ const config: HardhatUserConfig = {
     localhost: {
       url: 'http://127.0.0.1:8545/'
     },
-    rinkeby: {
-      url: "https://goerli.infura.io/v3/cfcc633692a3413eb62f966cd67d45cf",
-      accounts: ['ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
-      gas: 100_000_000
+    goerli: {
+      url: process.env.INFURA_API_KEY,
+      accounts: [process.env.GOERLI_PRIVATE_KEY || '']
     },
   },
   etherscan: {
