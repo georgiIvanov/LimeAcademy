@@ -2,9 +2,16 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "hardhat/console.sol";
+
 struct Book {
     string name;
     uint16 copies;
+}
+
+struct BorrowHistory {
+    uint borrowsIndex;
+    mapping(uint => address) indexToUser;
 }
 
 contract BookLibrary is Ownable {
@@ -15,7 +22,8 @@ contract BookLibrary is Ownable {
 
     // User address -> Book index -> isBorrowed
     mapping (address => mapping (uint => bool)) borrowedByUsers;
-    mapping (uint => address[]) bookIndexToBorrowHistory;
+    // Book index -> BorrowHistory
+    mapping (uint => BorrowHistory) bookIndexToBorrowHistory;
 
     event BookUpdated(Book book);
     event BookAdded(Book book);
@@ -57,7 +65,11 @@ contract BookLibrary is Ownable {
         require(bookIsBorrowed(msg.sender, index) == false, "Same book cannot be borrowed twice.");
         book.copies--;
         borrowedByUsers[msg.sender][index] = true;
-        bookIndexToBorrowHistory[index].push(msg.sender);
+        
+        BorrowHistory storage history = bookIndexToBorrowHistory[index];
+        history.indexToUser[history.borrowsIndex] = msg.sender;
+        history.borrowsIndex++;
+
         emit BookBorrowed(book);
     }
 
@@ -78,11 +90,26 @@ contract BookLibrary is Ownable {
         borrowedByUsers[_user][_bookIndex] = false;
     }
 
-    function borrowHistory(string memory _bookName) public view returns (address[] memory) {
+    // Returns a maximum of 20 users that have borrowed book with this name.
+    function borrowHistory(string memory _bookName, uint _offset) public view returns (address[] memory) {
         uint bookHash = calculateBookHash(_bookName);
         require(hashToBookExists[bookHash], "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
-        return bookIndexToBorrowHistory[index];
+        uint16 maxCount = 20;
+        BorrowHistory storage history = bookIndexToBorrowHistory[index];
+        require(_offset < history.borrowsIndex - 1, 'Offset should be less than amount of borrowed books.');
+
+        uint start = _offset;
+        uint end = _offset + maxCount;
+        end = min(end, history.borrowsIndex - 1);
+        uint arraySize = end - start + 1;
+
+        address[] memory userBorrowHistory = new address[](arraySize);
+        for (uint i = start; i <= end; i++) {
+            userBorrowHistory[i] = history.indexToUser[i];
+        }
+        
+        return userBorrowHistory;
     }
 
     function getBook(uint _index) external view returns (Book memory) {
@@ -107,5 +134,9 @@ contract BookLibrary is Ownable {
 
     function bookIsBorrowed(address user, uint bookIndex) internal view returns(bool) {
         return borrowedByUsers[user][bookIndex];
+    }
+
+    function min(uint a, uint b) public pure returns (uint) {
+        return a >= b ? b : a;
     }
 }

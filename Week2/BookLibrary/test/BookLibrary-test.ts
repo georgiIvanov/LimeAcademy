@@ -130,7 +130,7 @@ describe('BookLibrary usage', () => {
   });
 
   it('Shows borrow history', async () => {
-    let history = await bookLibrary.borrowHistory('Some book');
+    let history = await bookLibrary.borrowHistory('Some book', 0);
     expect(history[0]).to.equal('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
     expect(history[1]).to.equal('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
     expect(history.length).to.equal(2);
@@ -144,7 +144,7 @@ describe('BookLibrary usage', () => {
   });
 
   it('Tries to get borrow history for non-existing', async () => {
-    await expect(bookLibrary.borrowHistory('Not existing book'))
+    await expect(bookLibrary.borrowHistory('Not existing book', 0))
     .to.revertedWith('Book is not in library.');
   });
 });
