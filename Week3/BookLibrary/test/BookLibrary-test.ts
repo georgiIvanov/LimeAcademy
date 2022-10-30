@@ -173,14 +173,14 @@ describe('BookLibrary usage', () => {
   it('Should check if book is borrowed', async () => {
     let owner = await helpers.owner();
     await bookLibrary.borrowBook('Some book');
-    var borrowed = await bookLibrary.bookIsBorroweByUser('Some book', owner.address);
+    var borrowed = await bookLibrary.bookIsBorrowedByUser('Some book', owner.address);
     expect(borrowed).to.equal(true);
 
     await bookLibrary.returnBook('Some book');
-    borrowed = await bookLibrary.bookIsBorroweByUser('Some book', owner.address);
+    borrowed = await bookLibrary.bookIsBorrowedByUser('Some book', owner.address);
     expect(borrowed).to.equal(false);
 
-    await expect(bookLibrary.bookIsBorroweByUser('Unexisting', owner.address))
+    await expect(bookLibrary.bookIsBorrowedByUser('Unexisting', owner.address))
     .to.be.revertedWith('Book is not in library.');
   });
 });

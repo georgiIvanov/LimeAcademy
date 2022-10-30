@@ -36,7 +36,7 @@ export const georliRun = async (hre: HardhatRuntimeEnvironment) => {
     console.log('name:', element.name, ', copies:', element.copies);
   });
   
-  var borrowedByOwner = await bookLibrary.bookIsBorroweByUser('Some book', wallet.address);
+  var borrowedByOwner = await bookLibrary.bookIsBorrowedByUser('Some book', wallet.address);
   console.log('Some Book is borrowed by ' + wallet.address + ': ' + borrowedByOwner);
 
   receipt = await bookLibrary.returnBook('Some book');
@@ -44,6 +44,6 @@ export const georliRun = async (hre: HardhatRuntimeEnvironment) => {
     console.log('Successfully returned Some book');
   }
 
-  borrowedByOwner = await bookLibrary.bookIsBorroweByUser('Some book', wallet.address);
+  borrowedByOwner = await bookLibrary.bookIsBorrowedByUser('Some book', wallet.address);
   console.log('Some Book is borrowed by ' + wallet.address + ': ' + borrowedByOwner);
 };

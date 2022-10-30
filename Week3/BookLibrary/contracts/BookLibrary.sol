@@ -146,7 +146,7 @@ contract BookLibrary is Ownable {
         return borrowedByUsers[user][bookIndex];
     }
 
-    function bookIsBorroweByUser(string memory _bookName, address _user) public view returns(bool) {
+    function bookIsBorrowedByUser(string memory _bookName, address _user) public view returns(bool) {
         uint bookHash = calculateBookHash(_bookName);
         require(hashToBookExists[bookHash], "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
