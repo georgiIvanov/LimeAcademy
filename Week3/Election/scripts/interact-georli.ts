@@ -3,31 +3,27 @@ import { ethers } from 'hardhat';
 import { USElection, USElection__factory } from '../typechain-types';
 
 
-export const hardhatRun = async (hre: HardhatRuntimeEnvironment) => {
-  const provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545/');
-  const signer = provider.getSigner(0);
+export const georliRun = async (hre: HardhatRuntimeEnvironment) => {
+  const provider = new hre.ethers.providers.InfuraProvider('goerli', {
+    infura: process.env.INFURA_API_KEY
+  });
 
-  const latestBlock = await provider.getBlock("latest");
+  const latestBlock = await provider.getBlock('latest');
   console.log('Latest block: ' + latestBlock.hash);
 
-  // Wallet is subclass of Signer
   const wallet = new hre.ethers.Wallet(
-    '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+    process.env.GOERLI_PRIVATE_KEY as string,
     provider
   );
 
   const balance = await wallet.getBalance();
   console.log(hre.ethers.utils.formatEther(balance));
 
-  // Replace address
-  const contractAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+  const contractAddress = "0x2818009E32e37C406dE1b82053D440b016Be07FF"
   
   // Instantiates a contract that has no signers, has read-only access
   // (You can use provider or wallet in the last argument)
-  const electionContract = new hre.ethers.Contract(contractAddress, USElection__factory.abi, provider);
-  
-  // This contract can call owner functions
-  const electionContractAsOwner = electionContract.connect(signer);
+  const electionContract = new hre.ethers.Contract(contractAddress, USElection__factory.abi, wallet);
 
   // Logs contract's abi
   // console.log(electionContract);
@@ -41,7 +37,7 @@ export const hardhatRun = async (hre: HardhatRuntimeEnvironment) => {
   console.log("Have results for Ohio:", haveResultsForOhio);
   
   // Transaction will fail when executed twice
-  const transactionOhio = await electionContractAsOwner.submitStateResult({
+  const transactionOhio = await electionContract.submitStateResult({
     name: "Ohio",
     votesBiden: 250,
     votesTrump: 150,

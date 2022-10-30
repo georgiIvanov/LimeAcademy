@@ -17,3 +17,11 @@ Second, deploy the election contract:
 
 Then run
 `npx hardhat interact`
+
+# Deploy on goerli 
+
+`npx hardhat deploy-testnets --network goerli`
+
+Interact
+
+`npx hardhat interact-goerli --network goerli`

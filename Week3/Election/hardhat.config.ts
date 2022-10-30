@@ -4,6 +4,7 @@ import '@nomiclabs/hardhat-etherscan';
 import { main, deployWithParams, deployContract } from './scripts/deploy';
 import { hardhatRun } from './scripts/interact';
 import dotenv from "dotenv"
+import { georliRun } from "./scripts/interact-georli";
 
 dotenv.config();
 
@@ -33,10 +34,18 @@ const config: HardhatUserConfig = {
 
 export default config;
 
+// You can add --network (and other) params to tasks
+
 task('interact', 'Interacts with election contract')
 .setAction(async (args, hre, runSuper) => {
   await hardhatRun(hre);
   await hre.run('print', { message: 'Interact task done! '});
+});
+
+task('interact-goerli', 'Interacts with election contract on goerli testnet')
+.setAction(async (args, hre, runSuper) => {
+  await georliRun(hre);
+  await hre.run('print', { message: 'Interact-goerli task done! '});
 });
 
 task('deploy-testnets', 'Deploys contract on a provided network')
