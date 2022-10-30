@@ -12,7 +12,9 @@ contract BookLibrary is Ownable {
     mapping (uint => Book) indexToBooks;
     mapping (uint => uint) hashToBookIndex;
     uint public totalBooks = 0;
-    mapping (address => uint[]) borrowedByUsers;
+
+    // User address -> Book index -> isBorrowed
+    mapping (address => mapping (uint => bool)) borrowedByUsers;
     mapping (uint => address[]) bookIndexToBorrowHistory;
 
     event BookUpdated(Book book);
@@ -51,11 +53,10 @@ contract BookLibrary is Ownable {
         Book storage book = indexToBooks[index];
 
         require(book.copies > 0, "No more copies left in library.");
-        uint[] memory borrowedIndices = borrowedByUsers[msg.sender];
 
-        require(bookIsBorrowed(borrowedIndices, index) == false, "Same book cannot be borrowed twice.");
+        require(bookIsBorrowed(msg.sender, index) == false, "Same book cannot be borrowed twice.");
         book.copies--;
-        borrowedByUsers[msg.sender].push(index);
+        borrowedByUsers[msg.sender][index] = true;
         bookIndexToBorrowHistory[index].push(msg.sender);
         emit BookBorrowed(book);
     }
@@ -65,23 +66,16 @@ contract BookLibrary is Ownable {
 
         require(hashToBookExists[bookHash], "Book is not in library.");
         uint index = hashToBookIndex[bookHash];
-        uint[] storage borrowedIndices = borrowedByUsers[msg.sender];
         
-        require(bookIsBorrowed(borrowedIndices, index), "Cannot return a book that's not borrowed.");
+        require(bookIsBorrowed(msg.sender, index), "Cannot return a book that's not borrowed.");
         Book storage book = indexToBooks[index];
         book.copies++;
-        removeFromBorrowedByUsers(borrowedIndices, index);
+        removeFromBorrowedByUsers(msg.sender, index);
         emit BookReturned(book);
     }
 
-    function removeFromBorrowedByUsers(uint[] storage _borrowedByUser, uint _bookIndex) internal {
-        for(uint i = 0; i < _borrowedByUser.length; i++) {
-            if(_borrowedByUser[i] == _bookIndex) {
-                _borrowedByUser[i] = _borrowedByUser[_borrowedByUser.length - 1];
-                _borrowedByUser.pop();
-                break;
-            }
-        }
+    function removeFromBorrowedByUsers(address _user, uint _bookIndex) internal {
+        borrowedByUsers[_user][_bookIndex] = false;
     }
 
     function borrowHistory(string memory _bookName) public view returns (address[] memory) {
@@ -111,13 +105,7 @@ contract BookLibrary is Ownable {
         return uint(val);
     }
 
-    function bookIsBorrowed(uint[] memory _userBorrowedBooksIndices, uint bookIndex) internal pure returns(bool) {
-        for (uint i = 0; i < _userBorrowedBooksIndices.length; i++) {
-            if (_userBorrowedBooksIndices[i] == bookIndex) {
-                return true;
-            }
-        }
-
-        return false;
+    function bookIsBorrowed(address user, uint bookIndex) internal view returns(bool) {
+        return borrowedByUsers[user][bookIndex];
     }
 }
