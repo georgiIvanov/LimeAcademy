@@ -13,7 +13,7 @@ export enum Leader {
   TRUMP
 }
 
-const USLibrary = ({ contractAddress }: USContract) => {
+const USElection = ({ contractAddress }: USContract) => {
   const { account, library } = useWeb3React<Web3Provider>();
   const usElectionContract = useUSElectionContract(contractAddress);
   const [currentLeader, setCurrentLeader] = useState<string>('Unknown');
@@ -103,4 +103,4 @@ const USLibrary = ({ contractAddress }: USContract) => {
   );
 };
 
-export default USLibrary;
+export default USElection;
