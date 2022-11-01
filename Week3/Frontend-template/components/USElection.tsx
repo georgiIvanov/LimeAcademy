@@ -8,9 +8,9 @@ type USContract = {
 };
 
 export enum Leader {
-  UNKNOWN,
-  BIDEN,
-  TRUMP
+  UNKNOWN = 0,
+  BIDEN = 1,
+  TRUMP = 2
 }
 
 const USElection = ({ contractAddress }: USContract) => {
@@ -30,6 +30,21 @@ const USElection = ({ contractAddress }: USContract) => {
     const currentLeader = await usElectionContract.currentLeader();
     setCurrentLeader(currentLeader == Leader.UNKNOWN ? 'Unknown' : currentLeader == Leader.BIDEN ? 'Biden' : 'Trump')
   }
+
+  usElectionContract.on('LogStateResult', (winner, stateSeats, stateName, tx) => {
+    console.log('LogStateResult');
+    console.log(winner);
+    console.log(stateSeats);
+    console.log(stateName);
+    console.log(tx);
+  });
+
+  const filterBiddenWinner = usElectionContract.filters.LogStateResult(Leader.BIDEN);
+
+  usElectionContract.on(filterBiddenWinner, (winner, stateSeats, stateName, tx) => {
+    console.log('Filtered LogStateResult - BIDEN only');
+    console.log(tx);
+  })
 
   const stateInput = (input) => {
     setName(input.target.value)

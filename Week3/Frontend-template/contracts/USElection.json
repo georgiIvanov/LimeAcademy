@@ -16,7 +16,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint8",
         "name": "winner",
         "type": "uint8"

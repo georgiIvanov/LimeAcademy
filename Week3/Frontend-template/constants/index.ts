@@ -12,4 +12,4 @@
   export const supportedMetamaskNetworks = [1, 3, 4, 5, 42];
 
   export const ALBT_TOKEN_ADDRESS = "0xc6869a93ef55e1d8ec8fdcda89c9d93616cf0a72";
-  export const US_ELECTION_ADDRESS = "0x2818009E32e37C406dE1b82053D440b016Be07FF";
+  export const US_ELECTION_ADDRESS = "0x050f21ee4f6902FE4b0CCB6291a63B05b91a2603";

@@ -18,7 +18,7 @@ contract USElection is Ownable {
         uint8 stateSeats;
     }
 
-    event LogStateResult(uint8 winner, uint8 stateSeats, string state);
+    event LogStateResult(uint8 indexed winner, uint8 stateSeats, string state);
     event LogElectionEnded(uint8 winner);
 
     modifier onlyActiveElection() {
