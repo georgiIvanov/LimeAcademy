@@ -3,6 +3,7 @@ import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
 import { Spinner } from "./Spinner";
+import { TransactionInfo } from "./TransactionInfo";
 
 type USContract = {
   contractAddress: string;
@@ -23,6 +24,7 @@ const USElection = ({ contractAddress }: USContract) => {
   const [votesTrump, setVotesTrump] = useState<number | undefined>();
   const [stateSeats, setStateSeats] = useState<number | undefined>();
   const [loading, isLoading] = useState<boolean>();
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   useEffect(() => {
     getCurrentLeader();
@@ -70,6 +72,7 @@ const USElection = ({ contractAddress }: USContract) => {
 
     try {
       const tx = await usElectionContract.submitStateResult(result);
+      setTransactionHash(tx.hash);
       await tx.wait();
     } catch (e) {
       throw e;
@@ -113,6 +116,7 @@ const USElection = ({ contractAddress }: USContract) => {
     <div className="button-wrapper">
       <button onClick={submitStateResults}>Submit Results</button>
     </div>
+    <TransactionInfo transactionHash={transactionHash}/>
     <div>
       {loading && <Spinner/>}
     </div>
