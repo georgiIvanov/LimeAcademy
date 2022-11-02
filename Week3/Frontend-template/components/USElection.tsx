@@ -2,6 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
+import { Spinner } from "./Spinner";
 
 type USContract = {
   contractAddress: string;
@@ -21,6 +22,7 @@ const USElection = ({ contractAddress }: USContract) => {
   const [votesBiden, setVotesBiden] = useState<number | undefined>();
   const [votesTrump, setVotesTrump] = useState<number | undefined>();
   const [stateSeats, setStateSeats] = useState<number | undefined>();
+  const [loading, isLoading] = useState<boolean>();
 
   useEffect(() => {
     getCurrentLeader();
@@ -63,10 +65,18 @@ const USElection = ({ contractAddress }: USContract) => {
   }
 
   const submitStateResults = async () => {
+    isLoading(true);
     const result:any = [name, votesBiden, votesTrump, stateSeats];
-    const tx = await usElectionContract.submitStateResult(result);
-    await tx.wait();
-    resetForm();
+
+    try {
+      const tx = await usElectionContract.submitStateResult(result);
+      await tx.wait();
+    } catch (e) {
+      throw e;
+    } finally {
+      isLoading(false);
+      resetForm();
+    }
   }
 
   const resetForm = async () => {
@@ -102,6 +112,9 @@ const USElection = ({ contractAddress }: USContract) => {
     </form>
     <div className="button-wrapper">
       <button onClick={submitStateResults}>Submit Results</button>
+    </div>
+    <div>
+      {loading && <Spinner/>}
     </div>
     <style jsx>{`
         .results-form {
