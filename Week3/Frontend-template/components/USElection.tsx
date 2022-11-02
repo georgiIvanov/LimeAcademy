@@ -2,6 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
+import { SeatsWon } from "./SeatsWon";
 import { Spinner } from "./Spinner";
 import { TransactionInfo } from "./TransactionInfo";
 
@@ -79,6 +80,7 @@ const USElection = ({ contractAddress }: USContract) => {
     } finally {
       isLoading(false);
       resetForm();
+      getCurrentLeader();
     }
   }
 
@@ -120,6 +122,7 @@ const USElection = ({ contractAddress }: USContract) => {
     <div>
       {loading && <Spinner/>}
     </div>
+    <SeatsWon usElectionContract={usElectionContract}/>
     <style jsx>{`
         .results-form {
           display: flex;
