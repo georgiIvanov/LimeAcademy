@@ -22,22 +22,24 @@ export const SeatsWon = ({ usElectionContract }: SeatsWonProps): JSX.Element => 
   }
 
   if (seats.length == 2) {
-    return <div className="center">
-      <table>
-        <tr>
-          <th>Candidate</th>
-          <th>Seats</th>
-        </tr>
-        <tr>
-          <td>Biden</td>
-          <td>{seats[0]}</td>
-        </tr>
-        <tr>
-          <td>Trump</td>
-          <td>{seats[1]}</td>
-        </tr>
-      </table>
-    </div>
+    return (
+      <div className="center">
+        <table>
+          <tr>
+            <th>Candidate</th>
+            <th>Seats</th>
+          </tr>
+          <tr>
+            <td>Biden</td>
+            <td>{seats[0]}</td>
+          </tr>
+          <tr>
+            <td>Trump</td>
+            <td>{seats[1]}</td>
+          </tr>
+        </table>
+      </div>
+    )
   }
   else {
     return <></>
