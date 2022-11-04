@@ -1,0 +1,383 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct Book",
+        "name": "book",
+        "type": "tuple"
+      }
+    ],
+    "name": "BookAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct Book",
+        "name": "book",
+        "type": "tuple"
+      }
+    ],
+    "name": "BookBorrowed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct Book",
+        "name": "book",
+        "type": "tuple"
+      }
+    ],
+    "name": "BookReturned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct Book",
+        "name": "book",
+        "type": "tuple"
+      }
+    ],
+    "name": "BookUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Book",
+        "name": "_book",
+        "type": "tuple"
+      }
+    ],
+    "name": "addBook",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_offset",
+        "type": "uint256"
+      }
+    ],
+    "name": "allBooks",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Book[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_bookName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "bookIsBorrowedByUser",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_bookName",
+        "type": "string"
+      }
+    ],
+    "name": "borrowBook",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_bookName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_offset",
+        "type": "uint256"
+      }
+    ],
+    "name": "borrowHistory",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_index",
+        "type": "uint256"
+      }
+    ],
+    "name": "getBook",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "copies",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Book",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "a",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "b",
+        "type": "uint256"
+      }
+    ],
+    "name": "min",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pageSize",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_bookName",
+        "type": "string"
+      }
+    ],
+    "name": "returnBook",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalBooks",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_bookName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_newCopiesValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "updateCopies",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
