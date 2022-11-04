@@ -2,6 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
+import { ElectionRunning } from "./ElectionRunning";
 import { SeatsWon } from "./SeatsWon";
 import { Spinner } from "./Spinner";
 import { TransactionInfo } from "./TransactionInfo";
@@ -24,7 +25,7 @@ const USElection = ({ contractAddress }: USContract) => {
   const [votesBiden, setVotesBiden] = useState<number | undefined>();
   const [votesTrump, setVotesTrump] = useState<number | undefined>();
   const [stateSeats, setStateSeats] = useState<number | undefined>();
-  const [loading, isLoading] = useState<boolean>();
+  const [isWaiting, setWaitingForTransaction] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,7 +69,7 @@ const USElection = ({ contractAddress }: USContract) => {
   }
 
   const submitStateResults = async () => {
-    isLoading(true);
+    setWaitingForTransaction(true);
     const result:any = [name, votesBiden, votesTrump, stateSeats];
 
     try {
@@ -78,7 +79,7 @@ const USElection = ({ contractAddress }: USContract) => {
     } catch (e) {
       throw e;
     } finally {
-      isLoading(false);
+      setWaitingForTransaction(false);
       resetForm();
       getCurrentLeader();
     }
@@ -120,9 +121,10 @@ const USElection = ({ contractAddress }: USContract) => {
     </div>
     <TransactionInfo transactionHash={transactionHash}/>
     <div>
-      {loading && <Spinner/>}
+      {isWaiting && <Spinner/>}
     </div>
     <SeatsWon usElectionContract={usElectionContract}/>
+    <ElectionRunning usElectionContract={usElectionContract} setWaiting={setWaitingForTransaction}/>
     <style jsx>{`
         .results-form {
           display: flex;
