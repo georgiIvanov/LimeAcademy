@@ -29,7 +29,7 @@ function Home() {
       </header>
 
       <main>
-        <h1>
+        <h1 className="text-3xl font-bold underline">
           Template project
         </h1>
       </main>

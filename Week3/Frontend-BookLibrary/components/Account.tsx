@@ -58,6 +58,7 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
                 }
               });
             }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
           >
             {isMetaMaskInstalled ? "Connect to MetaMask" : "Connect to Wallet"}
           </button>
@@ -77,7 +78,9 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
                 setError(error);
               }
             }
-          }}>
+          }}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          >
           Wallet Connect
         </button>)
         }
@@ -93,6 +96,7 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
           target: "_blank",
           rel: "noopener noreferrer",
         }}
+        className='py-2 px-2 bg-blue-100'
       >
         {ENSName || `${shortenHex(account, 4)}`}
       </a>
@@ -103,7 +107,9 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
           } catch (e) {
             setError(error);
           }
-        }}>
+        }}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+        >
         Disconnect
       </button>
     </div>
