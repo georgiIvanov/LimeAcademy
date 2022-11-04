@@ -2,6 +2,7 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { useEffect, useState } from "react";
 import useUSElectionContract from "../hooks/useUSElectionContract";
+import { ContractError } from "./ContractError";
 import { ElectionRunning } from "./ElectionRunning";
 import { SeatsWon } from "./SeatsWon";
 import { Spinner } from "./Spinner";
@@ -27,14 +28,21 @@ const USElection = ({ contractAddress }: USContract) => {
   const [stateSeats, setStateSeats] = useState<number | undefined>();
   const [isWaiting, setWaitingForTransaction] = useState<boolean>(false);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     getCurrentLeader();
   },[])
 
   const getCurrentLeader = async () => {
-    const currentLeader = await usElectionContract.currentLeader();
-    setCurrentLeader(currentLeader == Leader.UNKNOWN ? 'Unknown' : currentLeader == Leader.BIDEN ? 'Biden' : 'Trump')
+    try {
+      const currentLeader = await usElectionContract.currentLeader();
+      setCurrentLeader(currentLeader == Leader.UNKNOWN 
+        ? 'Unknown' : currentLeader == Leader.BIDEN ? 'Biden' : 'Trump');
+    } catch (e) {
+      setErrorMessage('Could not get current leader.');
+      throw e;
+    }    
   }
 
   usElectionContract.on('LogStateResult', (winner, stateSeats, stateName, tx) => {
@@ -77,6 +85,7 @@ const USElection = ({ contractAddress }: USContract) => {
       setTransactionHash(tx.hash);
       await tx.wait();
     } catch (e) {
+      setErrorMessage('Could not submit results.');
       throw e;
     } finally {
       setWaitingForTransaction(false);
@@ -125,6 +134,7 @@ const USElection = ({ contractAddress }: USContract) => {
     </div>
     <SeatsWon usElectionContract={usElectionContract}/>
     <ElectionRunning usElectionContract={usElectionContract} setWaiting={setWaitingForTransaction}/>
+    <ContractError message={errorMessage}/>
     <style jsx>{`
         .results-form {
           display: flex;

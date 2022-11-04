@@ -36,3 +36,11 @@ a {
 .center {
   margin: auto;
 }
+
+.error {
+  background-color: #DF5252;
+  color: white;
+  margin: auto;
+  padding: 20px;
+  border-radius: 4px;
+}
