@@ -22,12 +22,11 @@ export const AllBooks = ({bookLibraryContract, state, setState}: AllBooksProps):
   
   return (
     <div>
-      <ul className="list-disc">
+      <ul>
         {
           state.books.map((book, index) => {
-            console.log(book);
-            let foo = index % 2 == 0 ? 'bg-blue': '';
-            return <li>{book.name}</li>
+            let foo = index % 2 == 0 ? 'bg-gray-200': 'bg-gray-300';
+            return <li className={'px-2 py-2 ' + foo}>{book.name}</li>
           })
         }
       </ul>
