@@ -1,12 +1,15 @@
 import { ChangeEvent, useState } from "react";
 import { BookLibrary } from "../contracts/types/BookLibrary";
+import { BookLibraryState } from "./BookLibrary";
 import { Spinner } from "./Spinner";
 
 export interface AddBookProps {
   bookLibraryContract: BookLibrary
+  state: BookLibraryState
+  setState: (state: BookLibraryState) => void
 }
 
-export const AddBook = ({ bookLibraryContract }: AddBookProps): JSX.Element => {
+export const AddBook = ({ bookLibraryContract, state, setState }: AddBookProps): JSX.Element => {
   const [bookName, setBookName] = useState<string>('');
   const [bookCopies, setBookCopies] = useState<number>(5);
   const [addBookSpinner, setAddBookSpinner] = useState<boolean>(false);
@@ -25,6 +28,8 @@ export const AddBook = ({ bookLibraryContract }: AddBookProps): JSX.Element => {
       let tx = await bookLibraryContract.addBook({ name: bookName, copies: bookCopies });
       console.log(tx);
       await tx.wait();
+      state.totalBooks = await bookLibraryContract.totalBooks();
+      setState(state);
     } finally {
       setAddBookSpinner(false);
       clearBookForm();
