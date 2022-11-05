@@ -1,5 +1,6 @@
 import { ChangeEvent, useState } from "react";
 import { BookLibrary } from "../contracts/types/BookLibrary";
+import { ActionButton } from "./ActionButton";
 import { BookLibraryState } from "./BookLibrary";
 import { Spinner } from "./Spinner";
 
@@ -57,10 +58,7 @@ export const AddBook = ({ bookLibraryContract, state, setState }: AddBookProps):
       />
     </label>
     <span className="flex h-8 space-x-6">
-      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-        onClick={addBook}>
-        Add book
-      </button>
+      <ActionButton onClick={addBook} title='Add book' />
       {addBookSpinner && <Spinner />}
     </span>
   </div>

@@ -5,6 +5,7 @@ import { injected, walletConnect } from "../connectors";
 import useENSName from "../hooks/useENSName";
 import useMetaMaskOnboarding from "../hooks/useMetaMaskOnboarding";
 import { formatEtherscanLink, shortenHex } from "../util";
+import { ActionButton } from "./ActionButton";
 
 type AccountProps = {
   triedToEagerConnect: boolean;
@@ -42,54 +43,43 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
 
   if (typeof account !== "string") {
     return (
-      <div>
-        {isWeb3Available ? (
-          <button
-            disabled={connecting}
-            onClick={() => {
-              setConnecting(true);
+      <div className="space-x-2">
+        {isWeb3Available ? 
+          <ActionButton onClick= {() => {
+            setConnecting(true);
 
-              activate(injected, undefined, true).catch((error) => {
-                // ignore the error if it's a user rejected request
-                if (error instanceof UserRejectedRequestError) {
-                  setConnecting(false);
-                } else {
-                  setError(error);
-                }
-              });
-            }}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-          >
-            {isMetaMaskInstalled ? "Connect to MetaMask" : "Connect to Wallet"}
-          </button>
-
-        ) : (
-          <button onClick={startOnboarding}>Install Metamask</button>
-        )}
-        {(<button
-          disabled={connecting}
-          onClick={async () => {
-            try {
-              await activate(walletConnect(), undefined, true)
-            } catch (e) {
+            activate(injected, undefined, true).catch((error) => {
+              // ignore the error if it's a user rejected request
               if (error instanceof UserRejectedRequestError) {
                 setConnecting(false);
               } else {
                 setError(error);
               }
-            }
+            });
           }}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-          >
-          Wallet Connect
-        </button>)
+          disabled={connecting}
+          title={isMetaMaskInstalled ? "Connect to MetaMask" : "Connect to Wallet"}/>
+        : <ActionButton onClick= {startOnboarding} title='Install Metamask'/>
         }
+        <ActionButton onClick= {async () => {
+          try {
+            await activate(walletConnect(), undefined, true)
+          } catch (e) {
+            if (error instanceof UserRejectedRequestError) {
+              setConnecting(false);
+            } else {
+              setError(error);
+            }
+          }
+        }}
+        title='Wallet Connect'
+      />
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-x-2">
       <a
         {...{
           href: formatEtherscanLink("Account", [chainId, account]),
@@ -100,18 +90,15 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
       >
         {ENSName || `${shortenHex(account, 4)}`}
       </a>
-      <button
-        onClick={async () => {
+      <ActionButton onClick= {async () => {
           try {
             deactivate()
           } catch (e) {
             setError(error);
           }
         }}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-        >
-        Disconnect
-      </button>
+        title='Disconnect'
+      />
     </div>
 
 
