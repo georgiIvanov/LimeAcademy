@@ -40,6 +40,10 @@ export const BookLibrary = (): JSX.Element => {
     getBookLibraryInfo();
   }, []);
 
+  useEffect(() => {
+    getBookLibraryInfo();
+  }, [account]);
+
   const getBookLibraryInfo = async () => {
     const libraryOwner = await bookLibraryContract.owner();
     const totalBooks = await bookLibraryContract.totalBooks();

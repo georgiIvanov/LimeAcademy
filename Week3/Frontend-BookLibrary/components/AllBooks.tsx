@@ -15,9 +15,10 @@ export const AllBooks = ({ bookLibraryContract, state, setState }: AllBooksProps
 
   useEffect(() => {
     if (state.totalBooks != 0) {
+      setBorrowIndex(null);
       getAllBooks();
     }
-  }, [state.totalBooks]);
+  }, [state.totalBooks.toString(), state.connectedWalletAddress]);
 
   const getAllBooks = async () => {
     const books = await bookLibraryContract.allBooks(0);
