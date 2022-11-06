@@ -13,12 +13,14 @@ export class BookLibraryState {
   libraryOwner: string;
   connectedWalletAddress: string;
   books: BookStruct[]
+  borrowed: number[]
   totalBooks: BigNumberish;
 
   constructor() {
     this.libraryOwner = '';
     this.connectedWalletAddress = '';
     this.books = Array<BookStruct>();
+    this.borrowed = Array<number>();
     this.totalBooks = 0;
   }
 
