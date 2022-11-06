@@ -76,7 +76,7 @@ export const AllBooks = ({ bookLibraryContract, state, setState }: AllBooksProps
             let borrowElement = borrowIndex == index 
             ? <Spinner /> 
             : actionButton
-            return (<li className={'px-2 py-2 flow-root ' + rowBackground}>
+            return (<li className={'px-2 py-2 flow-root ' + rowBackground} key={index}>
               <span className="float-left">{book.name} ({book.copies})</span>
               
               <span className="float-right">

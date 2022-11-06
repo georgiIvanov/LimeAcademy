@@ -1,13 +1,12 @@
 import { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
-import { BigNumber, BigNumberish } from "ethers";
-import { ChangeEvent, useEffect, useState } from "react";
+import { BigNumberish } from "ethers";
+import { useEffect, useState } from "react";
 import { BOOKLIBRARY_ADDRESS } from "../constants";
 import { BookStruct } from "../contracts/types/BookLibrary";
 import useBookLibraryContract from "../hooks/useBookContract";
 import { AddBook } from "./AddBook";
 import { AllBooks } from "./AllBooks";
-import { Spinner } from "./Spinner";
 
 export class BookLibraryState {
   libraryOwner: string;
@@ -15,6 +14,7 @@ export class BookLibraryState {
   books: BookStruct[]
   borrowed: number[]
   totalBooks: BigNumberish;
+  isOwner: boolean;
 
   constructor() {
     this.libraryOwner = '';
@@ -22,23 +22,14 @@ export class BookLibraryState {
     this.books = Array<BookStruct>();
     this.borrowed = Array<number>();
     this.totalBooks = 0;
-  }
-
-  isOwner = () => {
-    return this.libraryOwner == this.connectedWalletAddress 
-    && this.libraryOwner.length != 0
-    && this.libraryOwner != null;
+    this.isOwner = false;
   }
 }
 
 export const BookLibrary = (): JSX.Element => {
   const bookLibraryContract = useBookLibraryContract(BOOKLIBRARY_ADDRESS);
-  const { account, library } = useWeb3React<Web3Provider>();
+  const { account } = useWeb3React<Web3Provider>();
   const [state, setState] = useState<BookLibraryState>(new BookLibraryState())
-  
-  useEffect(() => {
-    getBookLibraryInfo();
-  }, []);
 
   useEffect(() => {
     getBookLibraryInfo();
@@ -47,12 +38,17 @@ export const BookLibrary = (): JSX.Element => {
   const getBookLibraryInfo = async () => {
     const libraryOwner = await bookLibraryContract.owner();
     const totalBooks = await bookLibraryContract.totalBooks();
-    setState({
+    state.libraryOwner = libraryOwner;
+    state.connectedWalletAddress = account;
+    state.totalBooks = totalBooks;
+    const newState = {
       ...state, 
       libraryOwner: libraryOwner, 
-      totalBooks: totalBooks, 
-      connectedWalletAddress: account
-    });
+      connectedWalletAddress: account, 
+      totalBooks: totalBooks,
+      isOwner: libraryOwner === account
+    } as BookLibraryState;
+    setState(newState);
   };
 
   return (

@@ -58,7 +58,7 @@ export const AddBook = ({ bookLibraryContract, state, setState }: AddBookProps):
       />
     </label>
     <span className="flex h-8 space-x-6">
-      <ActionButton onClick={addBook} title='Add book' />
+      <ActionButton onClick={addBook} title='Add book' disabled={!state.isOwner} />
       {addBookSpinner && <Spinner />}
     </span>
   </div>
