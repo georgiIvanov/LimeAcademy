@@ -50,6 +50,17 @@ export const AllBooks = ({ bookLibraryContract, state, setState }: AllBooksProps
     return await Promise.all(result);
   }
 
+  const returnBook = async (bookName: string, index: number) => {
+    setBorrowIndex(index);
+    try {
+      const tx = await bookLibraryContract.returnBook(bookName);
+      await tx.wait();
+      await getAllBooks();
+    } finally {
+      setBorrowIndex(null);
+    }
+  }
+
   return (
     <div>
       <ul>
@@ -59,7 +70,7 @@ export const AllBooks = ({ bookLibraryContract, state, setState }: AllBooksProps
             
             let actionButton = state.borrowed[index] == null 
             ? <ActionButton title="Borrow" onClick={ () => { borrowBook(book.name, index) }} />
-            : <ActionButton title="Return" onClick={ () => { }} />
+            : <ActionButton title="Return" onClick={ () => { returnBook(book.name, index) }} />
 
             let borrowElement = borrowIndex == index 
             ? <Spinner /> 
@@ -77,5 +88,4 @@ export const AllBooks = ({ bookLibraryContract, state, setState }: AllBooksProps
       </ul>
     </div>
   )
-  // return <div>foo</div>
 }
