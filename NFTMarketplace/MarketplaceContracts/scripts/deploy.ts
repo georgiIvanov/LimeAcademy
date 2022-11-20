@@ -25,7 +25,7 @@ async function main(ethers: HardhatEthersHelpers) {
     'Collection', 
     'CC', 
     'Some collection description', 
-    'https://globalgrind.com/wp-content/uploads/sites/16/2022/02/16450451491794.jpg'
+    'https://ipfs.io/ipfs/'
   );
   await collectionTx.wait();
 
@@ -35,10 +35,11 @@ async function main(ethers: HardhatEthersHelpers) {
   );
   console.log(' --- Deploy script ---- ')
   console.log('Collection owner:', await collection.owner())
-  const mintTx = await collection.mint();
+  const mintTx = await collection.mint('QmbBpR9SHdxard11tkcD59yc1Jq1XbRVu6uorjhUbhPkpt');
   await mintTx.wait();
   const isApproved = await collection.getApproved(1);
   console.log('Approved:', isApproved);
+  console.log('Token Uri:', await collection.tokenURI(1));
 }
 
 // We recommend this pattern to be able to use async/await everywhere

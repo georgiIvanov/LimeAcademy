@@ -14,6 +14,9 @@ contract CollectionContract is ERC721, Ownable {
   IMarketplace public marketplace;
   uint private nextToken;
 
+  // Token id to metadata hash
+  mapping(uint => string) metadata;
+
   constructor(
     string memory _symbol,
     string memory _baseUri,
@@ -31,12 +34,26 @@ contract CollectionContract is ERC721, Ownable {
     return baseUri;
   }
 
-  function mint() onlyOwner public {
+  // Mints a token from the collection
+  // 
+  // - `hash` the ipfs hash of the token's metadata
+  // 
+  function mint(string calldata _hash) public {
     super._safeMint(_msgSender(), nextToken);
     super.approve(address(marketplace), nextToken);
+    metadata[nextToken] = _hash;
     nextToken++;
   }
 
+  // URI for the token's metadata
+  function tokenURI(uint256 tokenId) public view override returns (string memory) {
+      _requireMinted(tokenId);
+
+      string memory baseURI = _baseURI();
+      return string(abi.encodePacked(baseURI, metadata[tokenId]));
+  }
+
+  // Tokens count that have been minted so far.
   function tokensCount() public view returns (uint) {
     return nextToken - 1;
   }
