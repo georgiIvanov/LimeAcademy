@@ -35,6 +35,16 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
         collectionsCount++;
     }
 
+    modifier onlyICollection(address collection) {
+      require(
+        ERC721(collection).supportsInterface(
+          type(ICollectionContract).interfaceId
+        ),
+        'Parameter (or caller) must be ICollectionContract'
+      );
+      _;
+    }
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(IMarketplace).interfaceId;
     }
@@ -47,14 +57,7 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
       emit MarketplaceFeeReceived(_msgSender(), _seller, msg.value);
     }
 
-    function canTransferToken(uint tokenId) external view returns (bool) {
-      require(
-        ERC721(_msgSender()).supportsInterface(
-          type(ICollectionContract).interfaceId
-        ),
-        'Caller must be ICollectionContract'
-      );
-
+    function canTransferToken(uint tokenId) onlyICollection(_msgSender()) external view returns (bool) {
       ICollectionContract collection = ICollectionContract(_msgSender());
       uint key = collection.marketplaceKey();
 
@@ -62,14 +65,9 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
       return order.price == 0;
     }
 
-    function makeSellOrder(address _collection, uint _tokenId, uint _price) public {
-      require(
-        ERC721(_collection).supportsInterface(
-          type(ICollectionContract).interfaceId
-        ),
-        'Collection must be ICollectionContract'
-      );
-
+    function makeSellOrder(
+      address _collection, uint _tokenId, uint _price
+    ) onlyICollection(_collection) public {
       ICollectionContract collection = ICollectionContract(_collection);
       require(collection.getApproved(_tokenId) == address(this), 
       'Marketplace must be approver.');
@@ -87,14 +85,9 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
       sellOrders[key][_tokenId] = order;
     }
 
-    function cancelSellOrder(address _collection, uint _tokenId) public {
-      require(
-        ERC721(_collection).supportsInterface(
-          type(ICollectionContract).interfaceId
-        ),
-        'Collection must be ICollectionContract'
-      );
-
+    function cancelSellOrder(
+      address _collection, uint _tokenId
+    ) onlyICollection(_collection) public {
       ICollectionContract collection = ICollectionContract(_collection);
       require(collection.getApproved(_tokenId) == address(this), 
       'Marketplace must be approver.');
