@@ -67,6 +67,17 @@ contract CollectionContract is ERC721, Ownable, ICollectionContract {
         nextToken++;
     }
 
+    function _transfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override {
+        require(marketplace.canTransferToken(tokenId),
+        'Sell order for token exists, not eligible for transfer');
+
+        super._transfer(from, to, tokenId);
+    }
+
     // URI for the token's metadata
     function tokenURI(uint256 tokenId)
         public

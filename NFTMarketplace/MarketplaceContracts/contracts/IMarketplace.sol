@@ -8,4 +8,6 @@ interface IMarketplace is IERC165 {
   event MarketplaceFeeReceived(address indexed fromCollection, address indexed fromSeller, uint amount);
 
   function receiveFee(address seller) external payable;
+
+  function canTransferToken(uint tokenId) external view returns(bool);
 }

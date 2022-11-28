@@ -47,6 +47,21 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
       emit MarketplaceFeeReceived(_msgSender(), _seller, msg.value);
     }
 
+    function canTransferToken(uint tokenId) external view returns (bool) {
+      require(
+        ERC721(_msgSender()).supportsInterface(
+          type(ICollectionContract).interfaceId
+        ),
+        'Caller must be ICollectionContract'
+      );
+
+      ICollectionContract collection = ICollectionContract(_msgSender());
+      uint key = collection.marketplaceKey();
+
+      Order memory order = sellOrders[key][tokenId];
+      return order.price == 0;
+    }
+
     function makeSellOrder(address _collection, uint _tokenId, uint _price) public {
       require(
         ERC721(_collection).supportsInterface(

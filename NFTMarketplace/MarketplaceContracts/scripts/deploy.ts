@@ -1,6 +1,7 @@
 import { HardhatEthersHelpers } from "hardhat/types";
 import { ethers } from "hardhat";
 import { CollectionContract, Marketplace } from "../typechain-types";
+import * as helpers from './helpers';
 
 async function main(ethers: HardhatEthersHelpers) {
   // const tokenContractFactory = await ethers.getContractFactory("TokenContract");
@@ -15,7 +16,9 @@ async function main(ethers: HardhatEthersHelpers) {
   // console.log("Symbol:", await tokenContract.symbol(), 'Name:', await tokenContract.name());
   // console.log("Description:", await tokenContract.description());
 
-  console.log('Signer ', (await signer()).address);
+  const owner = await helpers.owner();
+  const user1 = await helpers.user1();
+  console.log('Signer ', owner.address);
   
   const marketplaceFactory = await ethers.getContractFactory('Marketplace');
   const marketplaceContract = await marketplaceFactory.deploy();
@@ -43,29 +46,22 @@ async function main(ethers: HardhatEthersHelpers) {
   const sellTx = await marketplaceContract.makeSellOrder(collection.address, 1, 10);
   // Trying to make sell order a second time should fail
   // await marketplaceContract.makeSellOrder(collection.address, 1, 10);
-  // await anotherUserTriesToSellToken(marketplaceContract, collection, 1);
+  // await anotherUserTriesToSellToken(marketplaceContract, collection);
 
-  
+  collection.transferFrom(owner.address, user1.address , 1).catch((error) => {
+    console.log('Transfer failed. This is expected since sell order is in progress.');
+  });
 }
 
 // We're expecting this to fail because
 // only the owner of a token should be able to make sell order.
 const anotherUserTriesToSellToken = async (
   marketplace: Marketplace,
-  collection: CollectionContract,
-  tokenId: number
+  collection: CollectionContract
 ) => {
-  const userMarketplace = marketplace.connect(await user1());
+  const userMarketplace = marketplace.connect(await helpers.user1());
   const sellTx = await userMarketplace.makeSellOrder(collection.address, 1, 10);
 };
-
-export let signer = async () => {
-  return (await ethers.getSigners())[0];
-}
-
-export let user1 = async () => {
-  return (await ethers.getSigners())[1];
-}
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
