@@ -51,6 +51,11 @@ async function main(ethers: HardhatEthersHelpers) {
   collection.transferFrom(owner.address, user1.address , 1).catch((error) => {
     console.log('Transfer failed. This is expected since sell order is in progress.');
   });
+
+  marketplaceContract.cancelSellOrder(collection.address, 1);
+  marketplaceContract.cancelSellOrder(collection.address, 1).catch((error) => {
+    console.log('Second cancel of sell order fails, as expected.');
+  });
 }
 
 // We're expecting this to fail because

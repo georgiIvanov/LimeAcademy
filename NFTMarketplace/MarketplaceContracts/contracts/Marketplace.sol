@@ -86,4 +86,26 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
       order.price = _price;
       sellOrders[key][_tokenId] = order;
     }
+
+    function cancelSellOrder(address _collection, uint _tokenId) public {
+      require(
+        ERC721(_collection).supportsInterface(
+          type(ICollectionContract).interfaceId
+        ),
+        'Collection must be ICollectionContract'
+      );
+
+      ICollectionContract collection = ICollectionContract(_collection);
+      require(collection.getApproved(_tokenId) == address(this), 
+      'Marketplace must be approver.');
+
+      require(collection.ownerOf(_tokenId) == _msgSender(),
+      'Seller must be owner of token.');
+
+      uint key = collection.marketplaceKey();
+      Order memory order = sellOrders[key][_tokenId];
+      require(order.price > 0, 'Sell order doesn\'t exist.');
+
+      delete sellOrders[key][_tokenId];
+    }
 }
