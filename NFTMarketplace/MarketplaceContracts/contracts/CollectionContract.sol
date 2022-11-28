@@ -4,60 +4,84 @@ pragma solidity 0.8.17;
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import './IMarketplace.sol';
+import './ICollectionContract.sol';
+
 import 'hardhat/console.sol';
 
-import './IMarketplace.sol';
-
 // A token contract representing an NFT collection
-contract CollectionContract is ERC721, Ownable {
-  string public description;
-  string public baseUri;
-  IMarketplace public marketplace;
-  uint private nextToken;
+contract CollectionContract is ERC721, Ownable, ICollectionContract {
+    string public description;
+    string public baseUri;
+    IMarketplace public marketplace;
 
-  // Token id to metadata hash
-  mapping(uint => string) metadata;
+    uint private nextToken;
+    uint private key;
 
-  constructor(
-    string memory _symbol,
-    string memory _baseUri,
-    string memory _name, 
-    string memory _description,
-    address _marketplace
-  ) ERC721(_name, _symbol) {
-    require(ERC165(_marketplace).supportsInterface(type(IMarketplace).interfaceId));
+    // Token id to metadata hash
+    mapping(uint => string) metadata;
 
-    baseUri = _baseUri;
-    description = _description;
-    marketplace = IMarketplace(_marketplace);
-    nextToken = 1;
-  }
+    constructor(
+        string memory _symbol,
+        string memory _baseUri,
+        string memory _name,
+        string memory _description,
+        address _marketplace,
+        uint _key
+    ) ERC721(_name, _symbol) {
+        require(
+            ERC165(_marketplace).supportsInterface(
+                type(IMarketplace).interfaceId
+            )
+        );
 
-  function _baseURI() internal view virtual override returns (string memory) {
-    return baseUri;
-  }
+        baseUri = _baseUri;
+        description = _description;
+        marketplace = IMarketplace(_marketplace);
+        nextToken = 1;
+        key = _key;
+    }
 
-  // Mints a token from the collection
-  // 
-  // - `hash` the ipfs hash of the token's metadata
-  // 
-  function mint(string calldata _hash) public {
-    super._safeMint(_msgSender(), nextToken);
-    super.approve(address(marketplace), nextToken);
-    metadata[nextToken] = _hash;
-    nextToken++;
-  }
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseUri;
+    }
 
-  // URI for the token's metadata
-  function tokenURI(uint256 tokenId) public view override returns (string memory) {
-      _requireMinted(tokenId);
+    function marketplaceKey() external view override returns (uint) {
+      return key;
+    }
 
-      string memory baseURI = _baseURI();
-      return string(abi.encodePacked(baseURI, metadata[tokenId]));
-  }
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
+        return interfaceId == type(ICollectionContract).interfaceId
+        || super.supportsInterface(interfaceId);
+    }
 
-  // Tokens count that have been minted so far.
-  function tokensCount() public view returns (uint) {
-    return nextToken - 1;
-  }
+    // Mints a token from the collection.
+    // Marketplace is set as approver.
+    // 
+    // - `hash` the ipfs hash of the token's metadata
+    //
+    function mint(string calldata _hash) public {
+        super._safeMint(_msgSender(), nextToken);
+        super.approve(address(marketplace), nextToken);
+        metadata[nextToken] = _hash;
+        nextToken++;
+    }
+
+    // URI for the token's metadata
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        _requireMinted(tokenId);
+
+        string memory baseURI = _baseURI();
+        return string(abi.encodePacked(baseURI, metadata[tokenId]));
+    }
+
+    // Tokens count that have been minted so far.
+    function tokensCount() public view returns (uint) {
+        return nextToken - 1;
+    }
 }
