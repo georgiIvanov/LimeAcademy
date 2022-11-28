@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import 'hardhat/console.sol';
 
@@ -22,11 +23,13 @@ contract CollectionContract is ERC721, Ownable {
     string memory _baseUri,
     string memory _name, 
     string memory _description,
-    IMarketplace _marketplace
+    address _marketplace
   ) ERC721(_name, _symbol) {
+    require(ERC165(_marketplace).supportsInterface(type(IMarketplace).interfaceId));
+
     baseUri = _baseUri;
     description = _description;
-    marketplace = _marketplace;
+    marketplace = IMarketplace(_marketplace);
     nextToken = 1;
   }
 

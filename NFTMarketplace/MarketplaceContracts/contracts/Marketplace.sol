@@ -2,12 +2,13 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './CollectionContract.sol';
 import './IMarketplace.sol';
 
 import "hardhat/console.sol";
 
-contract Marketplace is Ownable, IMarketplace {
+contract Marketplace is Ownable, IMarketplace, ERC165 {
     uint public collectionsCount;
     mapping(uint => CollectionContract) public collections;
 
@@ -22,18 +23,15 @@ contract Marketplace is Ownable, IMarketplace {
             _baseUri,
             _name,
             _description,
-            this
+            address(this)
         );
         collection.transferOwnership(_msgSender());
         collections[collectionsCount] = collection;
         collectionsCount++;
-        
-        console.log("Collection ->");
-        console.log('Address:', address(collection));
     }
 
-    function getCollection(uint index) public view returns(address) {
-      return address(collections[index]);
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IMarketplace).interfaceId;
     }
 
     function receiveFee(address seller) external payable override {
