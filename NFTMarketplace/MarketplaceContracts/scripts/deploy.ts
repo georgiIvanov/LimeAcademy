@@ -40,8 +40,12 @@ async function main(ethers: HardhatEthersHelpers) {
   console.log('Approved:', isApproved);
   console.log('Token Uri:', await collection.tokenURI(1));
   
-  const sellTx = await marketplaceContract.makeSellOrder(collection.address, 1);
+  const sellTx = await marketplaceContract.makeSellOrder(collection.address, 1, 10);
+  // Trying to make sell order a second time should fail
+  // await marketplaceContract.makeSellOrder(collection.address, 1, 10);
   // await anotherUserTriesToSellToken(marketplaceContract, collection, 1);
+
+  
 }
 
 // We're expecting this to fail because
@@ -52,7 +56,7 @@ const anotherUserTriesToSellToken = async (
   tokenId: number
 ) => {
   const userMarketplace = marketplace.connect(await user1());
-  const sellTx = await userMarketplace.makeSellOrder(collection.address, 1);
+  const sellTx = await userMarketplace.makeSellOrder(collection.address, 1, 10);
 };
 
 export let signer = async () => {
