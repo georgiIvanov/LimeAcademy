@@ -2,19 +2,26 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import './TokenCollection.sol';
-import './IMarketplace.sol';
 import './Order.sol';
 
 import "hardhat/console.sol";
 
-contract Marketplace is Ownable, IMarketplace, ERC165 {
-    uint public collectionsCount;
-    mapping(uint => TokenCollection) public collections;
+contract Marketplace is Ownable {
+    uint private nextCollectionKey;
+
+    // CollectionKey => TokenCollection
+    mapping(uint => IERC721) public collections;
 
     // CollectionKey => TokenId => Order
-    mapping(uint => mapping(uint => Order)) sellOrders;
+    mapping(uint => mapping(uint => Order)) private sellOrders;
+
+    // Address (of token collection) => CollectionKey
+    mapping(address => uint) private collectionKeys;
+
+    constructor() {
+      nextCollectionKey = 1;
+    }
 
     function createCollection(
         string calldata _name,
@@ -26,79 +33,80 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
             _symbol,
             _baseUri,
             _name,
-            _description,
-            address(this),
-            collectionsCount
+            _description
         );
-        collection.transferOwnership(_msgSender());
-        collections[collectionsCount] = collection;
-        collectionsCount++;
+        collections[nextCollectionKey] = collection;
+        collectionKeys[address(collection)] = nextCollectionKey;
+        nextCollectionKey++;
     }
 
-    modifier onlyICollection(address collection) {
+    modifier onlyTokenCollection(address someAddress) {
       require(
-        ERC721(collection).supportsInterface(
-          type(ITokenCollection).interfaceId
-        ),
-        'Parameter (or caller) must be ITokenCollection'
+        IERC721(someAddress).supportsInterface(type(IERC721).interfaceId)
+        && IERC721Metadata(someAddress).supportsInterface(type(IERC721Metadata).interfaceId),
+        'Parameter must implement IERC721 & IERC721Metadata'
       );
       _;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IMarketplace).interfaceId;
-    }
-
-    function getCollection(uint _index) public view returns(address) {
-      return address(collections[_index]);
-    }
-
-    function receiveFee(address _seller) external payable override {
-      emit MarketplaceFeeReceived(_msgSender(), _seller, msg.value);
-    }
-
-    function canTransferToken(uint tokenId) onlyICollection(_msgSender()) external view returns (bool) {
-      ITokenCollection collection = ITokenCollection(_msgSender());
-      uint key = collection.marketplaceKey();
-
-      Order memory order = sellOrders[key][tokenId];
-      return order.price == 0;
+    modifier collectionInMarketplace(address someAddress) {
+      require(
+        collectionKeys[someAddress] > 0,
+        'Collection must be part of marketplace'
+      );
+      _;
     }
 
     function makeSellOrder(
       address _collection, uint _tokenId, uint _price
-    ) onlyICollection(_collection) public {
-      ITokenCollection collection = ITokenCollection(_collection);
-      require(collection.getApproved(_tokenId) == address(this), 
-      'Marketplace must be approver.');
+    ) collectionInMarketplace(_collection) public {
+      uint collectionKey = collectionKeys[_collection];
+      require(collectionKey > 0, 'Collection must be part of marketplace');
+
+      IERC721 collection = IERC721(_collection);
 
       require(collection.ownerOf(_tokenId) == _msgSender(),
-      'Seller must be owner of token.');
+      'Seller must be owner of token');
 
-      require(_price > 0, 'Price for token must be above 0.');
+      require(
+        collection.getApproved(_tokenId) == address(this)
+        || collection.isApprovedForAll(_msgSender(), address(this)), 
+      'Marketplace must be approver');
 
-      uint key = collection.marketplaceKey();
-      Order memory order = sellOrders[key][_tokenId];
-      require(order.price == 0, 'A sell order already exists.');
+      require(_price > 0, 'Price for token must be above 0');
+
+      Order memory order = sellOrders[collectionKey][_tokenId];
+      require(order.price == 0, 'A sell order already exists');
 
       order.price = _price;
-      sellOrders[key][_tokenId] = order;
+      order.tokenOwner = _msgSender();
+      sellOrders[collectionKey][_tokenId] = order;
+      collection.transferFrom(_msgSender(), address(this), _tokenId);
     }
 
     function cancelSellOrder(
       address _collection, uint _tokenId
-    ) onlyICollection(_collection) public {
-      ITokenCollection collection = ITokenCollection(_collection);
-      require(collection.getApproved(_tokenId) == address(this), 
-      'Marketplace must be approver.');
+    ) collectionInMarketplace(_collection) public {
+      IERC721 collection = IERC721(_collection);
+      uint collectionKey = collectionKeys[_collection];
 
-      require(collection.ownerOf(_tokenId) == _msgSender(),
-      'Seller must be owner of token.');
+      require(collection.ownerOf(_tokenId) == address(this),
+      'Marketplace must be owner of token.');
 
-      uint key = collection.marketplaceKey();
-      Order memory order = sellOrders[key][_tokenId];
+      Order memory order = sellOrders[collectionKey][_tokenId];
       require(order.price > 0, 'Sell order doesn\'t exist.');
+      require(order.tokenOwner == _msgSender(), 'Only original token owner can cancel order');
+      delete sellOrders[collectionKey][_tokenId];
+      collection.transferFrom(address(this), _msgSender(), _tokenId);
+    }
 
-      delete sellOrders[key][_tokenId];
+    function collectionsCount() public view returns (uint) {
+      return nextCollectionKey - 1;
+    }
+
+    function getCollection(uint _index) public view returns(address) {
+      require(_index > 0 && _index <= collectionsCount(), 
+      'Index must be: 0 < index <= collectionsCount');
+      return address(collections[_index]);
     }
 }

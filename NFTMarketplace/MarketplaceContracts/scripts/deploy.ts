@@ -18,12 +18,13 @@ async function main(ethers: HardhatEthersHelpers) {
 
   const owner = await helpers.owner();
   const user1 = await helpers.user1();
+  console.log(' --- Deploy script ---- ');
   console.log('Signer ', owner.address);
   
   const marketplaceFactory = await ethers.getContractFactory('Marketplace');
-  const marketplaceContract = await marketplaceFactory.deploy();
-  console.log("Marketplace contract deployed to:", marketplaceContract.address);
-  const collectionTx = await marketplaceContract.createCollection(
+  const marketplace = await marketplaceFactory.deploy();
+  console.log("Marketplace contract deployed to:", marketplace.address);
+  const collectionTx = await marketplace.createCollection(
     'Collection', 
     'CC', 
     'Some collection description', 
@@ -33,27 +34,32 @@ async function main(ethers: HardhatEthersHelpers) {
 
   const collection = await ethers.getContractAt(
     'TokenCollection', 
-    await marketplaceContract.getCollection(0)
+    await marketplace.getCollection(1)
   );
-  console.log(' --- Deploy script ---- ')
-  console.log('Collection owner:', await collection.owner())
-  const mintTx = await collection.mint('QmbBpR9SHdxard11tkcD59yc1Jq1XbRVu6uorjhUbhPkpt');
+  const approvalForAll = await collection.setApprovalForAll(marketplace.address, true);
+  await approvalForAll.wait();
+  console.log('Marketplace approved for all in collection:', collection.address);
+  
+  const mintTx = await collection.mint(owner.address, 'QmbBpR9SHdxard11tkcD59yc1Jq1XbRVu6uorjhUbhPkpt');
   await mintTx.wait();
-  const isApproved = await collection.getApproved(1);
-  console.log('Approved:', isApproved);
   console.log('Token Uri:', await collection.tokenURI(1));
   
-  const sellTx = await marketplaceContract.makeSellOrder(collection.address, 1, 10);
+  await marketplace.makeSellOrder(collection.address, 1, 10);
+  console.log('Created sell order');
   // Trying to make sell order a second time should fail
-  // await marketplaceContract.makeSellOrder(collection.address, 1, 10);
-  // await anotherUserTriesToSellToken(marketplaceContract, collection);
+  // await marketplace.makeSellOrder(collection.address, 1, 10);
+  // Trying to sell token that's not owned by that user should revert
+  // await anotherUserTriesToSellToken(marketplace, collection);
 
-  collection.transferFrom(owner.address, user1.address , 1).catch((error) => {
-    console.log('Transfer failed. This is expected since sell order is in progress.');
+  collection.transferFrom(owner.address, user1.address, 1).catch((error) => {
+    console.log('Transfer failed. This is expected since sell order makes marketplace the token owner.');
   });
 
-  await marketplaceContract.cancelSellOrder(collection.address, 1);
-  marketplaceContract.cancelSellOrder(collection.address, 1).catch((error) => {
+  await marketplace.cancelSellOrder(collection.address, 1);
+  console.log('Cancelled sell order');
+
+  // Trying to cancel order twice should fail
+  marketplace.cancelSellOrder(collection.address, 1).catch((error) => {
     console.log('Second cancel of sell order fails, as expected.');
   });
 }

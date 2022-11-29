@@ -2,21 +2,15 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import './IMarketplace.sol';
-import './ITokenCollection.sol';
 
 import 'hardhat/console.sol';
 
 // A token contract representing an NFT collection
-contract TokenCollection is ERC721, Ownable, ITokenCollection {
+contract TokenCollection is ERC721 {
     string public description;
     string public baseUri;
-    IMarketplace public marketplace;
 
     uint private nextToken;
-    uint private key;
 
     // Token id to metadata hash
     mapping(uint => string) metadata;
@@ -25,57 +19,26 @@ contract TokenCollection is ERC721, Ownable, ITokenCollection {
         string memory _symbol,
         string memory _baseUri,
         string memory _name,
-        string memory _description,
-        address _marketplace,
-        uint _key
+        string memory _description
     ) ERC721(_name, _symbol) {
-        require(
-            ERC165(_marketplace).supportsInterface(
-                type(IMarketplace).interfaceId
-            )
-        );
-
         baseUri = _baseUri;
         description = _description;
-        marketplace = IMarketplace(_marketplace);
         nextToken = 1;
-        key = _key;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return baseUri;
     }
 
-    function marketplaceKey() external view override returns (uint) {
-      return key;
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
-        return interfaceId == type(ITokenCollection).interfaceId
-        || super.supportsInterface(interfaceId);
-    }
-
     // Mints a token from the collection.
     // Marketplace is set as approver.
     // 
-    // - `hash` the ipfs hash of the token's metadata
+    // - `metadataHash` the ipfs hash of the token's metadata
     //
-    function mint(string calldata _hash) public {
-        super._safeMint(_msgSender(), nextToken);
-        super.approve(address(marketplace), nextToken);
-        metadata[nextToken] = _hash;
+    function mint(address to, string calldata _metadataHash) public {
+        super._safeMint(to, nextToken);
+        metadata[nextToken] = _metadataHash;
         nextToken++;
-    }
-
-    function _transfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal override {
-        require(marketplace.canTransferToken(tokenId),
-        'Sell order for token exists, not eligible for transfer');
-
-        super._transfer(from, to, tokenId);
     }
 
     // URI for the token's metadata
