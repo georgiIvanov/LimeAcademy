@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 
 import 'hardhat/console.sol';
 
 // A token contract representing an NFT collection
-contract TokenCollection is ERC721 {
+contract TokenCollection is ERC721Enumerable {
     string public description;
     string public baseUri;
 
-    uint private nextToken;
+    uint private tokenCounter;
 
     // Token id to metadata hash
     mapping(uint => string) metadata;
@@ -23,7 +23,7 @@ contract TokenCollection is ERC721 {
     ) ERC721(_name, _symbol) {
         baseUri = _baseUri;
         description = _description;
-        nextToken = 1;
+        tokenCounter = 1;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -36,9 +36,9 @@ contract TokenCollection is ERC721 {
     // - `metadataHash` the ipfs hash of the token's metadata
     //
     function mint(address to, string calldata _metadataHash) public {
-        super._safeMint(to, nextToken);
-        metadata[nextToken] = _metadataHash;
-        nextToken++;
+        super._safeMint(to, tokenCounter);
+        metadata[tokenCounter] = _metadataHash;
+        tokenCounter++;
     }
 
     // URI for the token's metadata
@@ -52,10 +52,5 @@ contract TokenCollection is ERC721 {
 
         string memory baseURI = _baseURI();
         return string(abi.encodePacked(baseURI, metadata[tokenId]));
-    }
-
-    // Tokens count that have been minted so far.
-    function tokensCount() public view returns (uint) {
-        return nextToken - 1;
     }
 }

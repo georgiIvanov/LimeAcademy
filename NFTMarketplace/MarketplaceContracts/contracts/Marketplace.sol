@@ -10,7 +10,7 @@ import "hardhat/console.sol";
 contract Marketplace is Ownable {
     uint private collectionCounter;
 
-    // CollectionKey => TokenCollection
+    // collectionId => IERC721Metadata (token collection)
     mapping(uint => IERC721Metadata) public collections;
 
     uint private ordersCounter;
@@ -38,16 +38,19 @@ contract Marketplace is Ownable {
             _name,
             _description
         );
-        collections[collectionCounter] = collection;
-        collectionKeys[address(collection)] = collectionCounter;
-        collectionCounter++;
+        
+        addCollection(address(collection));
     }
 
-    modifier onlyTokenCollection(address someAddress) {
-      require(IERC721Metadata(someAddress).supportsInterface(type(IERC721Metadata).interfaceId),
-        'Parameter must implement IERC721Metadata'
+    function addCollection(address _collection) public {
+      require(IERC165(_collection).supportsInterface(type(IERC721Metadata).interfaceId)
+      && IERC165(_collection).supportsInterface(type(IERC721Enumerable).interfaceId),
+        'Parameter must implement IERC721Metadata & IERC721Enumerable'
       );
-      _;
+
+      collections[collectionCounter] = IERC721Metadata(_collection);
+      collectionKeys[_collection] = collectionCounter;
+      collectionCounter++;
     }
 
     modifier collectionInMarketplace(address someAddress) {
