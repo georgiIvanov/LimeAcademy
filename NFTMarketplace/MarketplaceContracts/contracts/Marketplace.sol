@@ -8,19 +8,22 @@ import './Order.sol';
 import "hardhat/console.sol";
 
 contract Marketplace is Ownable {
-    uint private nextCollectionKey;
+    uint private collectionCounter;
 
     // CollectionKey => TokenCollection
-    mapping(uint => IERC721) public collections;
+    mapping(uint => IERC721Metadata) public collections;
 
-    // CollectionKey => TokenId => Order
-    mapping(uint => mapping(uint => Order)) private sellOrders;
+    uint private ordersCounter;
+
+    // orderId => Order
+    mapping(uint => Order) private orders;
 
     // Address (of token collection) => CollectionKey
     mapping(address => uint) private collectionKeys;
 
     constructor() {
-      nextCollectionKey = 1;
+      collectionCounter = 1;
+      ordersCounter = 1;
     }
 
     function createCollection(
@@ -35,16 +38,14 @@ contract Marketplace is Ownable {
             _name,
             _description
         );
-        collections[nextCollectionKey] = collection;
-        collectionKeys[address(collection)] = nextCollectionKey;
-        nextCollectionKey++;
+        collections[collectionCounter] = collection;
+        collectionKeys[address(collection)] = collectionCounter;
+        collectionCounter++;
     }
 
     modifier onlyTokenCollection(address someAddress) {
-      require(
-        IERC721(someAddress).supportsInterface(type(IERC721).interfaceId)
-        && IERC721Metadata(someAddress).supportsInterface(type(IERC721Metadata).interfaceId),
-        'Parameter must implement IERC721 & IERC721Metadata'
+      require(IERC721Metadata(someAddress).supportsInterface(type(IERC721Metadata).interfaceId),
+        'Parameter must implement IERC721Metadata'
       );
       _;
     }
@@ -75,38 +76,56 @@ contract Marketplace is Ownable {
 
       require(_price > 0, 'Price for token must be above 0');
 
-      Order memory order = sellOrders[collectionKey][_tokenId];
+      Order memory order = orders[ordersCounter];
       require(order.price == 0, 'A sell order already exists');
 
       order.price = _price;
+      order.status = OrderStatus.open;
       order.tokenOwner = _msgSender();
-      sellOrders[collectionKey][_tokenId] = order;
+      order.collection = _collection;
+      order.token = _tokenId;
+      order.ofType = OrderType.sell;
+      orders[ordersCounter] = order;
+      ordersCounter++;
       collection.transferFrom(_msgSender(), address(this), _tokenId);
     }
 
     function cancelSellOrder(
-      address _collection, uint _tokenId
-    ) collectionInMarketplace(_collection) public {
-      IERC721 collection = IERC721(_collection);
-      uint collectionKey = collectionKeys[_collection];
+      uint _orderId
+    ) public {
+      Order memory order = orders[_orderId];
 
-      require(collection.ownerOf(_tokenId) == address(this),
-      'Marketplace must be owner of token.');
-
-      Order memory order = sellOrders[collectionKey][_tokenId];
-      require(order.price > 0, 'Sell order doesn\'t exist.');
+      require(order.price > 0, 'Order doesn\'t exist.');
+      require(order.status == OrderStatus.open, 'Order must have status open');
       require(order.tokenOwner == _msgSender(), 'Only original token owner can cancel order');
-      delete sellOrders[collectionKey][_tokenId];
-      collection.transferFrom(address(this), _msgSender(), _tokenId);
+      require(order.ofType == OrderType.sell, 'Order type must be sell');
+
+      IERC721 collection = IERC721(order.collection);
+
+      require(collection.ownerOf(order.token) == address(this),
+      'Marketplace must be owner of token.');
+      
+      order.status = OrderStatus.cancelled;
+      collection.transferFrom(address(this), _msgSender(), order.token);
     }
 
     function collectionsCount() public view returns (uint) {
-      return nextCollectionKey - 1;
+      return collectionCounter - 1;
     }
 
-    function getCollection(uint _index) public view returns(address) {
+    function ordersCount() public view returns (uint) {
+      return ordersCounter - 1;
+    }
+
+    function getCollection(uint _index) public view returns(IERC721Metadata) {
       require(_index > 0 && _index <= collectionsCount(), 
       'Index must be: 0 < index <= collectionsCount');
-      return address(collections[_index]);
+      return IERC721Metadata(collections[_index]);
+    }
+
+    function getOrder(uint _index) public view returns (Order memory) {
+      require(_index > 0 && _index <= ordersCount(), 
+      'Index must be: 0 < index <= ordersCount');
+      return orders[_index];
     }
 }

@@ -55,11 +55,11 @@ async function main(ethers: HardhatEthersHelpers) {
     console.log('Transfer failed. This is expected since sell order makes marketplace the token owner.');
   });
 
-  await marketplace.cancelSellOrder(collection.address, 1);
+  await marketplace.cancelSellOrder(1);
   console.log('Cancelled sell order');
 
   // Trying to cancel order twice should fail
-  marketplace.cancelSellOrder(collection.address, 1).catch((error) => {
+  marketplace.cancelSellOrder(1).catch((error) => {
     console.log('Second cancel of sell order fails, as expected.');
   });
 }
