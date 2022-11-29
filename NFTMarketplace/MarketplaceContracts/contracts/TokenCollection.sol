@@ -5,12 +5,12 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './IMarketplace.sol';
-import './ICollectionContract.sol';
+import './ITokenCollection.sol';
 
 import 'hardhat/console.sol';
 
 // A token contract representing an NFT collection
-contract CollectionContract is ERC721, Ownable, ICollectionContract {
+contract TokenCollection is ERC721, Ownable, ITokenCollection {
     string public description;
     string public baseUri;
     IMarketplace public marketplace;
@@ -51,7 +51,7 @@ contract CollectionContract is ERC721, Ownable, ICollectionContract {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
-        return interfaceId == type(ICollectionContract).interfaceId
+        return interfaceId == type(ITokenCollection).interfaceId
         || super.supportsInterface(interfaceId);
     }
 

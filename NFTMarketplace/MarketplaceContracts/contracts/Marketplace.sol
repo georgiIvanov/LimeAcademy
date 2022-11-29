@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
-import './CollectionContract.sol';
+import './TokenCollection.sol';
 import './IMarketplace.sol';
 import './Order.sol';
 
@@ -11,7 +11,7 @@ import "hardhat/console.sol";
 
 contract Marketplace is Ownable, IMarketplace, ERC165 {
     uint public collectionsCount;
-    mapping(uint => CollectionContract) public collections;
+    mapping(uint => TokenCollection) public collections;
 
     // CollectionKey => TokenId => Order
     mapping(uint => mapping(uint => Order)) sellOrders;
@@ -22,7 +22,7 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
         string calldata _description,
         string calldata _baseUri
     ) public {
-        CollectionContract collection = new CollectionContract(
+        TokenCollection collection = new TokenCollection(
             _symbol,
             _baseUri,
             _name,
@@ -38,9 +38,9 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
     modifier onlyICollection(address collection) {
       require(
         ERC721(collection).supportsInterface(
-          type(ICollectionContract).interfaceId
+          type(ITokenCollection).interfaceId
         ),
-        'Parameter (or caller) must be ICollectionContract'
+        'Parameter (or caller) must be ITokenCollection'
       );
       _;
     }
@@ -58,7 +58,7 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
     }
 
     function canTransferToken(uint tokenId) onlyICollection(_msgSender()) external view returns (bool) {
-      ICollectionContract collection = ICollectionContract(_msgSender());
+      ITokenCollection collection = ITokenCollection(_msgSender());
       uint key = collection.marketplaceKey();
 
       Order memory order = sellOrders[key][tokenId];
@@ -68,7 +68,7 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
     function makeSellOrder(
       address _collection, uint _tokenId, uint _price
     ) onlyICollection(_collection) public {
-      ICollectionContract collection = ICollectionContract(_collection);
+      ITokenCollection collection = ITokenCollection(_collection);
       require(collection.getApproved(_tokenId) == address(this), 
       'Marketplace must be approver.');
 
@@ -88,7 +88,7 @@ contract Marketplace is Ownable, IMarketplace, ERC165 {
     function cancelSellOrder(
       address _collection, uint _tokenId
     ) onlyICollection(_collection) public {
-      ICollectionContract collection = ICollectionContract(_collection);
+      ITokenCollection collection = ITokenCollection(_collection);
       require(collection.getApproved(_tokenId) == address(this), 
       'Marketplace must be approver.');
 

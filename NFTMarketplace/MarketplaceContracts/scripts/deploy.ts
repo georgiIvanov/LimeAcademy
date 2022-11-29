@@ -1,6 +1,6 @@
 import { HardhatEthersHelpers } from "hardhat/types";
 import { ethers } from "hardhat";
-import { CollectionContract, Marketplace } from "../typechain-types";
+import { TokenCollection, Marketplace } from "../typechain-types";
 import * as helpers from './helpers';
 
 async function main(ethers: HardhatEthersHelpers) {
@@ -32,7 +32,7 @@ async function main(ethers: HardhatEthersHelpers) {
   await collectionTx.wait();
 
   const collection = await ethers.getContractAt(
-    'CollectionContract', 
+    'TokenCollection', 
     await marketplaceContract.getCollection(0)
   );
   console.log(' --- Deploy script ---- ')
@@ -62,7 +62,7 @@ async function main(ethers: HardhatEthersHelpers) {
 // only the owner of a token should be able to make sell order.
 const anotherUserTriesToSellToken = async (
   marketplace: Marketplace,
-  collection: CollectionContract
+  collection: TokenCollection
 ) => {
   const userMarketplace = marketplace.connect(await helpers.user1());
   const sellTx = await userMarketplace.makeSellOrder(collection.address, 1, 10);
