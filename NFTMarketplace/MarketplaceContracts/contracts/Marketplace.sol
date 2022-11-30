@@ -33,6 +33,20 @@ contract Marketplace is Ownable {
     ordersCounter = 1;
   }
 
+  modifier collectionInMarketplace(address someAddress) {
+    require(
+      collectionKeys[someAddress] > 0,
+      'Collection must be part of marketplace'
+    );
+    _;
+  }
+
+  function setMarketFee(uint16 _newFeePercentage) onlyOwner public {
+    require(_newFeePercentage >= 0 && _newFeePercentage <= 1000,
+    'Fee must be between 0 and 1000');
+    feePercentage = _newFeePercentage;
+  }
+
   function createCollection(
       string calldata _name,
       string calldata _symbol,
@@ -58,14 +72,6 @@ contract Marketplace is Ownable {
     collections[collectionCounter] = IERC721Metadata(_collection);
     collectionKeys[_collection] = collectionCounter;
     collectionCounter++;
-  }
-
-  modifier collectionInMarketplace(address someAddress) {
-    require(
-      collectionKeys[someAddress] > 0,
-      'Collection must be part of marketplace'
-    );
-    _;
   }
 
   function makeSellOrder(
