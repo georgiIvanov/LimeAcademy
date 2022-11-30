@@ -14,6 +14,7 @@ enum OrderType {
 
 struct Order {
   uint price;
+  address createdBy;
   address tokenOwner;
   address collection;
   uint token;

@@ -68,6 +68,16 @@ async function main(ethers: HardhatEthersHelpers) {
   console.log('Owner after executing sell:', await collection.ownerOf(1));
 
   console.log('Marketplace balance:', await marketplace.balance());
+
+  marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
+
+  // Trying to place buy order for non-existing tokenId fails
+  // marketplace.makeBuyOrder(collection.address, 999, helpers.ethToWei('1.0'));
+
+  // Placing buy order second time fails
+  // marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
+
+  
 }
 
 const buySoldToken = async (

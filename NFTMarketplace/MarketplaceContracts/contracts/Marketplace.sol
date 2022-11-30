@@ -25,6 +25,9 @@ contract Marketplace is Ownable {
   // collection => tokenId => orderId
   mapping(address => mapping(uint => uint)) sellOrderIds;
 
+  // collection => tokenId => buyer => orderId
+  mapping(address => mapping(uint => mapping(address => uint))) buyOrderIds;
+
   // Address (of token collection) => CollectionKey
   mapping(address => uint) private collectionKeys;
 
@@ -83,9 +86,6 @@ contract Marketplace is Ownable {
   function makeSellOrder(
     address _collection, uint _tokenId, uint _price
   ) collectionInMarketplace(_collection) public {
-    uint collectionKey = collectionKeys[_collection];
-    require(collectionKey > 0, 'Collection must be part of marketplace');
-
     IERC721 collection = IERC721(_collection);
 
     require(collection.ownerOf(_tokenId) == _msgSender(),
@@ -94,7 +94,7 @@ contract Marketplace is Ownable {
     require(
       collection.getApproved(_tokenId) == address(this)
       || collection.isApprovedForAll(_msgSender(), address(this)), 
-    'Marketplace must be approver');
+    'Marketplace must be approver of token');
 
     require(_price > 0, 'Price for token must be above 0');
 
@@ -102,6 +102,7 @@ contract Marketplace is Ownable {
 
     Order memory order = orders[ordersCounter];
     order.price = _price;
+    order.createdBy = _msgSender();
     order.status = OrderStatus.open;
     order.tokenOwner = _msgSender();
     order.collection = _collection;
@@ -131,7 +132,7 @@ contract Marketplace is Ownable {
     'Marketplace must be owner of token.');
     
     order.status = OrderStatus.cancelled;
-    sellOrderIds[order.collection][order.token] = 0;
+    delete sellOrderIds[order.collection][order.token];
     collection.transferFrom(address(this), _msgSender(), order.token);
   }
 
@@ -162,6 +163,27 @@ contract Marketplace is Ownable {
 
     order.status = OrderStatus.executed;
     collection.safeTransferFrom(address(this), _sendTo, order.token);
+  }
+
+  function makeBuyOrder(
+    address _collection, uint _tokenId, uint _price
+  ) collectionInMarketplace(_collection) public {
+    require(_price > 0, 'Price for token must be above 0');
+    require(buyOrderIds[_collection][_tokenId][_msgSender()] == 0,
+    'Can\'t place buy order twice');
+    IERC721 collection = IERC721(_collection);
+    
+    Order memory order = orders[ordersCounter];
+    order.price = _price;
+    order.status = OrderStatus.open;
+    order.createdBy = _msgSender();
+    order.tokenOwner = collection.ownerOf(_tokenId);
+    order.collection = _collection;
+    order.token = _tokenId;
+    order.ofType = OrderType.buy;
+    orders[ordersCounter] = order;
+    buyOrderIds[_collection][_tokenId][_msgSender()] = ordersCounter;
+    ordersCounter++;
   }
 
   function collectionsCount() public view returns (uint) {
