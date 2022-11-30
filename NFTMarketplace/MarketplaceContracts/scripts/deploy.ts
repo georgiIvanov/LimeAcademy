@@ -44,7 +44,7 @@ async function main(ethers: HardhatEthersHelpers) {
   await mintTx.wait();
   console.log('Token Uri:', await collection.tokenURI(1));
   
-  await marketplace.makeSellOrder(collection.address, 1, 10);
+  await marketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('1.0'));
   console.log('Created sell order');
   // Trying to make sell order a second time should fail
   // await marketplace.makeSellOrder(collection.address, 1, 10);
@@ -55,13 +55,32 @@ async function main(ethers: HardhatEthersHelpers) {
     console.log('Transfer failed. This is expected since sell order makes marketplace the token owner.');
   });
 
-  await marketplace.cancelSellOrder(1);
-  console.log('Cancelled sell order');
+  // await marketplace.cancelSellOrder(1);
+  // console.log('Cancelled sell order');
 
-  // Trying to cancel order twice should fail
-  marketplace.cancelSellOrder(1).catch((error) => {
-    console.log('Second cancel of sell order fails, as expected.');
-  });
+  // // Trying to cancel order twice should fail
+  // marketplace.cancelSellOrder(1).catch((error) => {
+  //   console.log('Second cancel of sell order fails, as expected.');
+  // });
+
+  console.log('Owner before executing sell:', await collection.ownerOf(1));
+  await buySoldToken(marketplace, 1);
+  console.log('Owner after executing sell:', await collection.ownerOf(1));
+
+  console.log('Marketplace balance:', await marketplace.balance());
+}
+
+const buySoldToken = async (
+  marketplace: Marketplace,
+  orderId: number
+) => {
+  const user1 = await helpers.user1();
+  console.log('Buyer ether before buy:', await user1.getBalance());
+  const userMarketplace = marketplace.connect(user1);
+  const tx = await userMarketplace.executeSellOrder(orderId, user1.address, { value: helpers.ethToWei('2') });
+  await tx.wait();
+  console.log('Buyer ether after buying:', await user1.getBalance());
+  console.log('Seller balance:', await (await helpers.owner()).getBalance());
 }
 
 // We're expecting this to fail because
