@@ -47,6 +47,12 @@ contract Marketplace is Ownable {
     feePercentage = _newFeePercentage;
   }
 
+  function withdraw(address _to, uint _amount) onlyOwner public {
+    require(_amount <= balance(), 'Amount must be lte to balance');
+    (bool sent, ) = address(_to).call{ value: _amount }('');
+    require(sent, 'Failed to send ether to seller');
+  }
+
   function createCollection(
       string calldata _name,
       string calldata _symbol,
@@ -146,11 +152,11 @@ contract Marketplace is Ownable {
     uint amountReceivedBySeller = order.price - fee;
     uint amountReturned = msg.value - order.price;
 
-    (bool sent, bytes memory data) = order.tokenOwner.call{ value: amountReceivedBySeller }('');
+    (bool sent, ) = order.tokenOwner.call{ value: amountReceivedBySeller }('');
     require(sent, 'Failed to send ether to seller');
 
     if(amountReturned > 0) {
-      (sent, data) = _msgSender().call{ value: amountReturned }('');
+      (sent, ) = _msgSender().call{ value: amountReturned }('');
       require(sent, 'Failed to return ether to buyer');
     }
 
