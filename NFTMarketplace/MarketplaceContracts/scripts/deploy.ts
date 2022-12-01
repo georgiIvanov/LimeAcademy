@@ -51,10 +51,6 @@ async function main(ethers: HardhatEthersHelpers) {
   // Trying to sell token that's not owned by that user should revert
   // await anotherUserTriesToSellToken(marketplace, collection);
 
-  collection.transferFrom(owner.address, user1.address, 1).catch((error) => {
-    console.log('Transfer failed. This is expected since sell order makes marketplace the token owner.');
-  });
-
   // await marketplace.cancelSellOrder(1);
   // console.log('Cancelled sell order');
 
@@ -69,13 +65,13 @@ async function main(ethers: HardhatEthersHelpers) {
 
   console.log('Marketplace balance:', await marketplace.balance());
 
-  await marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
+  await marketplace.makeBuyOrder(collection.address, 1, { value: helpers.ethToWei('1.0') });
 
   // Trying to place buy order for non-existing tokenId fails
-  // marketplace.makeBuyOrder(collection.address, 999, helpers.ethToWei('1.0'));
+  // marketplace.makeBuyOrder(collection.address, 999, { value: helpers.ethToWei('1.0') });
 
   // Placing buy order second time fails
-  // marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
+  // marketplace.makeBuyOrder(collection.address, 1, { value: helpers.ethToWei('1.0') });
 
   // console.log(await marketplace.getOrder(2));
   // await marketplace.cancelBuyOrder(2);

@@ -48,6 +48,15 @@ contract Marketplace is Ownable {
     _;
   }
 
+  function _requireMarketplaceApprover(
+    IERC721 _collection, address _owner, uint _tokenId
+  ) internal view {
+    require(
+      _collection.getApproved(_tokenId) == address(this)
+      || _collection.isApprovedForAll(_owner, address(this)), 
+    'Marketplace must be approver of token');
+  }
+
   function setMarketFee(uint16 _newFeePercentage) onlyOwner public {
     require(_newFeePercentage >= 0 && _newFeePercentage <= 1000,
     'Fee must be between 0 and 1000');
@@ -95,10 +104,7 @@ contract Marketplace is Ownable {
     require(collection.ownerOf(_tokenId) == _msgSender(),
     'Seller must be owner of token');
 
-    require(
-      collection.getApproved(_tokenId) == address(this)
-      || collection.isApprovedForAll(_msgSender(), address(this)), 
-    'Marketplace must be approver of token');
+    _requireMarketplaceApprover(collection, _msgSender(), _tokenId);
 
     require(_price > 0, 'Price for token must be above 0');
 
@@ -115,7 +121,6 @@ contract Marketplace is Ownable {
     orders[ordersCounter] = order;
     sellOrderIds[_collection][_tokenId] = ordersCounter;
     ordersCounter++;
-    collection.transferFrom(_msgSender(), address(this), _tokenId);
   }
 
   function cancelSellOrder(
@@ -130,14 +135,8 @@ contract Marketplace is Ownable {
     require(order.status == OrderStatus.open, 'Order must have status open');
     require(order.tokenOwner == _msgSender(), 'Only original token owner can cancel order');
 
-    IERC721 collection = IERC721(order.collection);
-
-    require(collection.ownerOf(order.token) == address(this),
-    'Marketplace must be owner of token.');
-    
     order.status = OrderStatus.cancelled;
     delete sellOrderIds[order.collection][order.token];
-    collection.transferFrom(address(this), _msgSender(), order.token);
   }
 
   function executeSellOrder(uint _orderId, address _sendTo) public payable {
@@ -149,8 +148,7 @@ contract Marketplace is Ownable {
       'Order doesn\'t exist.'
     );
     require(order.status == OrderStatus.open, 'Order must have status open');
-    require(collection.ownerOf(order.token) == address(this),
-    'Marketplace must be owner of token.');
+    _requireMarketplaceApprover(collection, order.tokenOwner, order.token);
     require(msg.value >= order.price, 'Not enought ether sent');
 
     uint fee = calculateFeeFor(order.price);
@@ -166,7 +164,7 @@ contract Marketplace is Ownable {
     }
 
     order.status = OrderStatus.executed;
-    collection.safeTransferFrom(address(this), _sendTo, order.token);
+    collection.safeTransferFrom(order.tokenOwner, _sendTo, order.token);
   }
 
   function makeBuyOrder(
