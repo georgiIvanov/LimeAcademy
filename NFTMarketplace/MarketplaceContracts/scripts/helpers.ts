@@ -15,3 +15,7 @@ export let user2 = async () => {
 export let ethToWei = (amount: string) => {
   return ethers.utils.parseUnits(amount, 'ether');
 }
+
+export let weiToEth = (amount: string | number) => {
+  return ethers.utils.formatEther(amount);
+}

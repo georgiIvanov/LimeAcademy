@@ -10,7 +10,9 @@ import "hardhat/console.sol";
 contract Marketplace is Ownable {
 
   // number between 0 and 1000
-  uint16 public feePercentage = 30;
+  uint16 public feePercentage;
+
+  uint public lockedBalance;
 
   uint private collectionCounter;
 
@@ -32,6 +34,8 @@ contract Marketplace is Ownable {
   mapping(address => uint) private collectionKeys;
 
   constructor() {
+    feePercentage = 30;
+    lockedBalance = 0;
     collectionCounter = 1;
     ordersCounter = 1;
   }
@@ -166,15 +170,15 @@ contract Marketplace is Ownable {
   }
 
   function makeBuyOrder(
-    address _collection, uint _tokenId, uint _price
-  ) collectionInMarketplace(_collection) public {
-    require(_price > 0, 'Price for token must be above 0');
+    address _collection, uint _tokenId
+  ) collectionInMarketplace(_collection) public payable {
+    require(msg.value > 0, 'Buy bid for token must be above 0');
     require(buyOrderIds[_collection][_tokenId][_msgSender()] == 0,
     'Can\'t place buy order twice');
     IERC721 collection = IERC721(_collection);
     
     Order memory order = orders[ordersCounter];
-    order.price = _price;
+    order.price = msg.value;
     order.status = OrderStatus.open;
     order.createdBy = _msgSender();
     order.tokenOwner = collection.ownerOf(_tokenId);
@@ -184,6 +188,19 @@ contract Marketplace is Ownable {
     orders[ordersCounter] = order;
     buyOrderIds[_collection][_tokenId][_msgSender()] = ordersCounter;
     ordersCounter++;
+    lockedBalance += msg.value;
+  }
+
+  function cancelBuyOrder(uint _orderId) public {
+    Order storage order = orders[_orderId];
+
+    require(
+      buyOrderIds[order.collection][order.token][_msgSender()] == _orderId,
+      'Order doesn\'t exist or sender is not the creator'
+    );
+
+    delete buyOrderIds[order.collection][order.token][_msgSender()];
+    order.status = OrderStatus.cancelled;
   }
 
   function collectionsCount() public view returns (uint) {
@@ -211,6 +228,6 @@ contract Marketplace is Ownable {
   }
 
   function balance() public view returns (uint) {
-    return address(this).balance;
+    return address(this).balance - lockedBalance;
   }
 }

@@ -69,7 +69,7 @@ async function main(ethers: HardhatEthersHelpers) {
 
   console.log('Marketplace balance:', await marketplace.balance());
 
-  marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
+  await marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
 
   // Trying to place buy order for non-existing tokenId fails
   // marketplace.makeBuyOrder(collection.address, 999, helpers.ethToWei('1.0'));
@@ -77,7 +77,8 @@ async function main(ethers: HardhatEthersHelpers) {
   // Placing buy order second time fails
   // marketplace.makeBuyOrder(collection.address, 1, helpers.ethToWei('1.0'));
 
-  
+  // console.log(await marketplace.getOrder(2));
+  // await marketplace.cancelBuyOrder(2);
 }
 
 const buySoldToken = async (
