@@ -27,10 +27,10 @@ contract Marketplace is Ownable {
   mapping(uint => Order) private orders;
 
   // collection => tokenId => orderId
-  mapping(address => mapping(uint => uint)) sellOrderIds;
+  mapping(address => mapping(uint => uint)) private sellOrderIds;
 
   // collection => tokenId => buyer => orderId
-  mapping(address => mapping(uint => mapping(address => uint))) buyOrderIds;
+  mapping(address => mapping(uint => mapping(address => uint))) private buyOrderIds;
 
   // Address (of token collection) => CollectionKey
   mapping(address => uint) private collectionKeys;
