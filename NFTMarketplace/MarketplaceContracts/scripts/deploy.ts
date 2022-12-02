@@ -42,9 +42,9 @@ async function main(ethers: HardhatEthersHelpers) {
   
   const mintTx = await collection.mint(owner.address, 'QmbBpR9SHdxard11tkcD59yc1Jq1XbRVu6uorjhUbhPkpt');
   await mintTx.wait();
-  console.log('Token Uri:', await collection.tokenURI(1));
+  console.log('Token Uri:', await collection.tokenURI(0));
   
-  await marketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('1.0'));
+  await marketplace.makeSellOrder(collection.address, 0, helpers.ethToWei('1.0'));
   console.log('Created sell order');
   // Trying to make sell order a second time should fail
   // await marketplace.makeSellOrder(collection.address, 1, 10);
@@ -59,13 +59,14 @@ async function main(ethers: HardhatEthersHelpers) {
   //   console.log('Second cancel of sell order fails, as expected.');
   // });
 
-  console.log('Owner before executing sell:', await collection.ownerOf(1));
+  console.log('Owner before executing sell:', await collection.ownerOf(0));
   await buySoldToken(marketplace, 1);
-  console.log('Owner after executing sell:', await collection.ownerOf(1));
+  console.log('Owner after executing sell:', await collection.ownerOf(0));
 
   console.log('Marketplace balance:', await marketplace.balance());
 
-  await marketplace.makeBuyOrder(collection.address, 1, { value: helpers.ethToWei('1.0') });
+  console.log('Making buy order');
+  await marketplace.makeBuyOrder(collection.address, 0, { value: helpers.ethToWei('1.0') });
 
   // Trying to place buy order for non-existing tokenId fails
   // marketplace.makeBuyOrder(collection.address, 999, { value: helpers.ethToWei('1.0') });

@@ -2,24 +2,26 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import "@openzeppelin/contracts/utils/Counters.sol";
 import './TokenCollection.sol';
 import './Order.sol';
 
 import "hardhat/console.sol";
 
 contract Marketplace is Ownable {
+  using Counters for Counters.Counter;
 
   // number between 0 and 1000
   uint16 public feePercentage;
 
   uint public lockedBalance;
 
-  uint private collectionCounter;
+  Counters.Counter private collectionCounter;
 
   // collectionId => IERC721Metadata (token collection)
   mapping(uint => IERC721Metadata) public collections;
 
-  uint private ordersCounter;
+  Counters.Counter private ordersCounter;
 
   // orderId => Order
   mapping(uint => Order) private orders;
@@ -36,8 +38,8 @@ contract Marketplace is Ownable {
   constructor() {
     feePercentage = 30;
     lockedBalance = 0;
-    collectionCounter = 1;
-    ordersCounter = 1;
+    collectionCounter.increment();
+    ordersCounter.increment();
   }
 
   modifier collectionInMarketplace(address someAddress) {
@@ -91,9 +93,9 @@ contract Marketplace is Ownable {
       'Parameter must implement IERC721Metadata & IERC721Enumerable'
     );
 
-    collections[collectionCounter] = IERC721Metadata(_collection);
-    collectionKeys[_collection] = collectionCounter;
-    collectionCounter++;
+    collections[collectionCounter.current()] = IERC721Metadata(_collection);
+    collectionKeys[_collection] = collectionCounter.current();
+    collectionCounter.increment();
   }
 
   function makeSellOrder(
@@ -110,7 +112,7 @@ contract Marketplace is Ownable {
 
     require(sellOrderIds[_collection][_tokenId] == 0, 'A sell order already exists');
 
-    Order memory order = orders[ordersCounter];
+    Order memory order = orders[ordersCounter.current()];
     order.price = _price;
     order.createdBy = _msgSender();
     order.status = OrderStatus.open;
@@ -118,9 +120,9 @@ contract Marketplace is Ownable {
     order.collection = _collection;
     order.token = _tokenId;
     order.ofType = OrderType.sell;
-    orders[ordersCounter] = order;
-    sellOrderIds[_collection][_tokenId] = ordersCounter;
-    ordersCounter++;
+    orders[ordersCounter.current()] = order;
+    sellOrderIds[_collection][_tokenId] = ordersCounter.current();
+    ordersCounter.increment();
   }
 
   function cancelSellOrder(
@@ -175,7 +177,7 @@ contract Marketplace is Ownable {
     'Can\'t place buy order twice');
     IERC721 collection = IERC721(_collection);
     
-    Order memory order = orders[ordersCounter];
+    Order memory order = orders[ordersCounter.current()];
     order.price = msg.value;
     order.status = OrderStatus.open;
     order.createdBy = _msgSender();
@@ -183,9 +185,9 @@ contract Marketplace is Ownable {
     order.collection = _collection;
     order.token = _tokenId;
     order.ofType = OrderType.buy;
-    orders[ordersCounter] = order;
-    buyOrderIds[_collection][_tokenId][_msgSender()] = ordersCounter;
-    ordersCounter++;
+    orders[ordersCounter.current()] = order;
+    buyOrderIds[_collection][_tokenId][_msgSender()] = ordersCounter.current();
+    ordersCounter.increment();
     lockedBalance += msg.value;
   }
 
@@ -202,11 +204,11 @@ contract Marketplace is Ownable {
   }
 
   function collectionsCount() public view returns (uint) {
-    return collectionCounter - 1;
+    return collectionCounter.current() - 1;
   }
 
   function ordersCount() public view returns (uint) {
-    return ordersCounter - 1;
+    return ordersCounter.current() - 1;
   }
 
   function getCollection(uint _index) public view returns(IERC721Metadata) {

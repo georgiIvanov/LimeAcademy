@@ -2,15 +2,18 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 import 'hardhat/console.sol';
 
 // A token contract representing an NFT collection
 contract TokenCollection is ERC721Enumerable {
+    using Counters for Counters.Counter;
+
     string public description;
     string public baseUri;
 
-    uint private tokenCounter;
+    Counters.Counter private tokenIdCounter;
 
     // Token id to metadata hash
     mapping(uint => string) metadata;
@@ -23,7 +26,6 @@ contract TokenCollection is ERC721Enumerable {
     ) ERC721(_name, _symbol) {
         baseUri = _baseUri;
         description = _description;
-        tokenCounter = 1;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -35,10 +37,10 @@ contract TokenCollection is ERC721Enumerable {
     // 
     // - `metadataHash` the ipfs hash of the token's metadata
     //
-    function mint(address to, string calldata _metadataHash) public {
-        super._safeMint(to, tokenCounter);
-        metadata[tokenCounter] = _metadataHash;
-        tokenCounter++;
+    function mint(address _to, string calldata _metadataHash) public {
+        super._safeMint(_to, tokenIdCounter.current());
+        metadata[tokenIdCounter.current()] = _metadataHash;
+        tokenIdCounter.increment();
     }
 
     // URI for the token's metadata
