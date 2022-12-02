@@ -193,14 +193,39 @@ contract Marketplace is Ownable {
 
   function cancelBuyOrder(uint _orderId) public {
     Order storage order = orders[_orderId];
-
+    address buyer = _msgSender();
     require(
-      buyOrderIds[order.collection][order.token][_msgSender()] == _orderId,
+      buyOrderIds[order.collection][order.token][buyer] == _orderId,
       'Order doesn\'t exist or sender is not the creator'
     );
 
-    delete buyOrderIds[order.collection][order.token][_msgSender()];
+    delete buyOrderIds[order.collection][order.token][buyer];
     order.status = OrderStatus.cancelled;
+    lockedBalance -= order.price;
+    (bool sent, ) = buyer.call{ value: order.price }('');
+    require(sent, 'Failed to return ether to buy order creator');
+  }
+
+  function executeBuyOrder(uint _orderId) public {
+    Order storage order = orders[_orderId];
+    address seller = _msgSender();
+
+    require(order.price > 0, 'Order doesn\'t exist');
+    require(order.status == OrderStatus.open, 'Order must have status open');
+    require(order.tokenOwner == seller, 'Only token owner can execute buy order');
+
+    IERC721 collection = IERC721(order.collection);
+    require(collection.ownerOf(order.token) == seller);
+    _requireMarketplaceApprover(collection, seller, order.token);
+    
+    uint fee = calculateFeeFor(order.price);
+    uint amountReceivedBySeller = order.price - fee;
+    (bool sent, ) = seller.call{ value: amountReceivedBySeller }('');
+    require(sent, 'Failed to send ether to seller');
+    lockedBalance -= order.price;
+    order.status = OrderStatus.executed;
+    delete buyOrderIds[order.collection][order.token][order.createdBy];
+    collection.safeTransferFrom(seller, order.createdBy, order.token);
   }
 
   function collectionsCount() public view returns (uint) {

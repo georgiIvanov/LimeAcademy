@@ -4,18 +4,6 @@ import { TokenCollection, Marketplace } from "../typechain-types";
 import * as helpers from './helpers';
 
 async function main(ethers: HardhatEthersHelpers) {
-  // const tokenContractFactory = await ethers.getContractFactory("TokenContract");
-  // const tokenContract = await tokenContractFactory.deploy(
-  //   'CC', 
-  //   'https://globalgrind.com/wp-content/uploads/sites/16/2022/02/16450451491794.jpg', 
-  //   'Collection', 
-  //   'Some collection description'
-  // );
-  // // const tokenContract = await tokenContractFactory.deploy('CC', 'Collection', 'Some collection description');
-  // console.log("Token contract deployed to:", tokenContract.address);
-  // console.log("Symbol:", await tokenContract.symbol(), 'Name:', await tokenContract.name());
-  // console.log("Description:", await tokenContract.description());
-
   const owner = await helpers.owner();
   const user1 = await helpers.user1();
   console.log(' --- Deploy script ---- ');
@@ -68,6 +56,8 @@ async function main(ethers: HardhatEthersHelpers) {
   console.log('Making buy order');
   await marketplace.makeBuyOrder(collection.address, 0, { value: helpers.ethToWei('1.0') });
 
+  console.log('Locked balance:', await marketplace.lockedBalance());
+  
   // Trying to place buy order for non-existing tokenId fails
   // marketplace.makeBuyOrder(collection.address, 999, { value: helpers.ethToWei('1.0') });
 
@@ -76,6 +66,28 @@ async function main(ethers: HardhatEthersHelpers) {
 
   // console.log(await marketplace.getOrder(2));
   // await marketplace.cancelBuyOrder(2);
+
+  await acceptBuyOffer(marketplace, collection, 2, 0);
+  console.log('Locked balance:', await marketplace.lockedBalance());
+}
+
+const acceptBuyOffer = async (
+  marketplace: Marketplace,
+  collection: TokenCollection,
+  orderId: number,
+  tokenId: number
+) => {
+  const user1 = await helpers.user1();
+  const userCollection = collection.connect(user1);
+  userCollection.approve(marketplace.address, tokenId)
+  
+  console.log('Executing buy order');
+  
+  console.log('Seller ether before buy:', await user1.getBalance());
+  const userMarketplace = marketplace.connect(user1);
+  await userMarketplace.executeBuyOrder(orderId);
+  console.log('Seller ether after buy:', await user1.getBalance());
+
 }
 
 const buySoldToken = async (
