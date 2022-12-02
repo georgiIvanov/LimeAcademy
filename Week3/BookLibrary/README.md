@@ -21,6 +21,11 @@ Goerli
 1. `npx hardhat node` (In separate terminal window)
 2. `npx hardhat run --network localhost scripts/deploy.ts`
 
+## Tests
+
+Run all tests
+`npx hardhat test`
+
 ----
 
 This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.

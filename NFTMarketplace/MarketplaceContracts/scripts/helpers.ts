@@ -12,6 +12,10 @@ export let user2 = async () => {
   return (await ethers.getSigners())[2];
 }
 
+export let user3 = async () => {
+  return (await ethers.getSigners())[3];
+}
+
 export let ethToWei = (amount: string) => {
   return ethers.utils.parseUnits(amount, 'ether');
 }
