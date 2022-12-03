@@ -132,7 +132,7 @@ contract Marketplace is Ownable {
 
     require(
       sellOrderIds[order.collection][order.token] > 0, 
-      'Order doesn\'t exist.'
+      'Order doesn\'t exist'
     );
     require(order.status == OrderStatus.open, 'Order must have status open');
     require(order.tokenOwner == _msgSender(), 'Only original token owner can cancel order');
@@ -147,7 +147,7 @@ contract Marketplace is Ownable {
 
     require(
       sellOrderIds[order.collection][order.token] > 0, 
-      'Order doesn\'t exist.'
+      'Order doesn\'t exist'
     );
     require(order.status == OrderStatus.open, 'Order must have status open');
     _requireMarketplaceApprover(collection, order.tokenOwner, order.token);
@@ -166,6 +166,7 @@ contract Marketplace is Ownable {
     }
 
     order.status = OrderStatus.executed;
+    delete sellOrderIds[order.collection][order.token];
     collection.safeTransferFrom(order.tokenOwner, _sendTo, order.token);
   }
 
@@ -236,16 +237,16 @@ contract Marketplace is Ownable {
     return ordersCounter.current() - 1;
   }
 
-  function getCollection(uint _index) public view returns(IERC721Metadata) {
-    require(_index > 0 && _index <= collectionsCount(), 
-    'Index must be: 0 < index <= collectionsCount');
-    return IERC721Metadata(collections[_index]);
+  function getCollection(uint _id) public view returns(IERC721Metadata) {
+    require(_id > 0 && _id <= collectionsCount(), 
+    'Index must be: 0 < _id <= collectionsCount');
+    return IERC721Metadata(collections[_id]);
   }
 
-  function getOrder(uint _index) public view returns (Order memory) {
-    require(_index > 0 && _index <= ordersCount(), 
-    'Index must be: 0 < index <= ordersCount');
-    return orders[_index];
+  function getOrder(uint _id) public view returns (Order memory) {
+    require(_id > 0 && _id <= ordersCount(), 
+    'Index must be: 0 < _id <= ordersCount');
+    return orders[_id];
   }
 
   function calculateFeeFor(uint amount) public view returns (uint) {

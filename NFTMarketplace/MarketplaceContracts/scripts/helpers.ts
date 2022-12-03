@@ -20,6 +20,17 @@ export let ethToWei = (amount: string) => {
   return ethers.utils.parseUnits(amount, 'ether');
 }
 
-export let weiToEth = (amount: string | number) => {
+export let weiToEth = (amount: string | number | any) => {
   return ethers.utils.formatEther(amount);
+}
+
+export enum OrderStatus {
+  open,
+  executed,
+  cancelled
+}
+
+export enum OrderType {
+  sell,
+  buy
 }
