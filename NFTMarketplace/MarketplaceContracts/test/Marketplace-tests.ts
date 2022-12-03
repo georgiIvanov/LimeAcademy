@@ -122,19 +122,23 @@ describe('Marketplace', () => {
 
   it('Makes invalid sell order', async () => {
     const user1 = await helpers.user1();
+    const tokenOwner = await helpers.user2();
     const emptyContractFactory = await ethers.getContractFactory('EmptyIERC165');
     const emptyContract = await emptyContractFactory.deploy();
 
     await expect(marketplace.makeSellOrder(emptyContract.address, 0, '100'))
-    .to.be.revertedWith('Collection must be part of marketplace');
+    .revertedWith('Collection must be part of marketplace');
 
     const user1Marketplace = marketplace.connect(user1);
     await expect(user1Marketplace.makeSellOrder(emptyContract.address, 0, '100'))
-    .to.be.revertedWith('Collection must be part of marketplace');
+    .revertedWith('Collection must be part of marketplace');
     
     const collection = tokenCollectionFactory.attach(await user1Marketplace.collections(1));
     await expect(user1Marketplace.makeSellOrder(collection.address, 0, '100'))
-    .to.be.revertedWith('Seller must be owner of token');
+    .revertedWith('Seller must be owner of token');
+
+    await expect(marketplace.connect(tokenOwner).makeSellOrder(collection.address, 55, 100))
+    .revertedWith('ERC721: invalid token ID');
   });
 
   it('Executes sell order', async () => {
@@ -204,7 +208,7 @@ describe('Marketplace', () => {
 
     // Make sell order
     const priceWei = helpers.ethToWei('4');
-    const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
+    const collection = tokenCollectionFactory.attach(await marketplace.getCollection(1)).connect(seller);
     await collection.approve(sellerMarketplace.address, 1);
     await sellerMarketplace.makeSellOrder(collection.address, 1, priceWei);
 
@@ -230,5 +234,163 @@ describe('Marketplace', () => {
     expect(order.token).equal(1);
     expect(order.status).equal(helpers.OrderStatus.cancelled);
     expect(order.ofType).equal(helpers.OrderType.sell);
+  });
+
+  it('Makes buy order', async () => {
+    // Setup
+    const seller = await helpers.user2();
+    const buyer = await helpers.user1();
+    const secondBuyer = await helpers.user3();
+    const buyerMarketplace = marketplace.connect(buyer);
+    const priceWei = helpers.ethToWei('5');
+    const priceWei2 = helpers.ethToWei('2');
+
+    const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
+    await collection.setApprovalForAll(marketplace.address, true);
+
+    expect(await buyerMarketplace.ordersCount()).equal(3);
+
+    // Make buy order
+    await expect(await buyerMarketplace.makeBuyOrder(collection.address, 1, {
+      value: priceWei
+    }))
+    .emit(buyerMarketplace, 'BuyOrderCreated')
+    .withArgs(collection.address, 1, priceWei, buyer.address);
+
+    // Make another buy order
+    await expect(await marketplace.connect(secondBuyer).makeBuyOrder(collection.address, 1, {
+      value: priceWei2
+    }))
+    .emit(buyerMarketplace, 'BuyOrderCreated')
+    .withArgs(collection.address, 1, priceWei2, secondBuyer.address);
+
+    expect(await buyerMarketplace.ordersCount()).equal(5);
+
+    // Verify second order
+    const order = await marketplace.getOrder(5);
+    expect(order.price).equal(priceWei2);
+    expect(order.createdBy).equal(secondBuyer.address);
+    expect(order.tokenOwner).equal(seller.address);
+    expect(order.collection).equal(collection.address);
+    expect(order.token).equal(1);
+    expect(order.status).equal(helpers.OrderStatus.open);
+    expect(order.ofType).equal(helpers.OrderType.buy);
+
+    // Marketplace locked ether
+    expect(await marketplace.lockedBalance()).equal(helpers.ethToWei('7.0'));
+  });
+
+  it('Tries to make invalid buy order', async () => {
+    // Setup
+    const seller = await helpers.user2();
+    const buyer = await helpers.owner();
+    const existingBuyer = await helpers.user1();
+    const priceWei = helpers.ethToWei('5');
+
+    const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
+    
+    // Try to create buy order for contract that's not part of marketplace
+    const emptyContractFactory = await ethers.getContractFactory('EmptyIERC165');
+    const emptyContract = await emptyContractFactory.deploy();
+
+    await expect(marketplace.makeBuyOrder(emptyContract.address, 0))
+    .revertedWith('Collection must be part of marketplace');
+
+    // Ether not sent with buy order
+    await expect(marketplace.connect(buyer).makeBuyOrder(collection.address, 1))
+    .revertedWith('Buy bid for token must be above 0');
+
+    // Buy order for non-existing token id
+    await expect(marketplace.connect(buyer).makeBuyOrder(collection.address, 55, {
+      value: priceWei
+    }))
+    .revertedWith('ERC721: invalid token ID');
+
+    // Duplicate buy order, same address can't place 2 buy orders
+    await expect(marketplace.connect(existingBuyer).makeBuyOrder(collection.address, 1, {
+      value: priceWei
+    }))
+    .revertedWith('Can\'t place buy order twice');
+  });
+
+  it('Executes buy order', async () => {
+    // Setup
+    const seller = await helpers.user2();
+    const buyer = await helpers.user1();
+    const secondBuyer = await helpers.user3();
+    const sellerMarketplace = marketplace.connect(seller);
+    const collection = tokenCollectionFactory.attach(await marketplace.collections(1));
+
+    // Invalid execution of buy order
+    await expect(sellerMarketplace.executeBuyOrder(55))
+    .revertedWith('Order doesn\'t exist');
+    await expect(sellerMarketplace.executeBuyOrder(1))
+    .revertedWith('Order must have status open');
+    await expect(marketplace.connect(buyer).executeBuyOrder(4))
+    .revertedWith('Only token owner can execute buy order');
+
+    // Execute buy order
+    expect(await marketplace.lockedBalance()).equal(helpers.ethToWei('7.0'));
+    await expect(await sellerMarketplace.executeBuyOrder(4))
+    .emit(sellerMarketplace, 'BuyOrderExecuted')
+    .withArgs(
+      collection.address, 1, helpers.ethToWei('5.0'), seller.address,
+      4750000000000000000n, 250000000000000000n
+    );
+
+    // Previous owner trying to execute buy order
+    // But they have already transferred the token 
+    await expect(sellerMarketplace.executeBuyOrder(5))
+    .revertedWith('Seller must be token owner');
+
+    expect(await marketplace.lockedBalance()).equal(helpers.ethToWei('2.0'));
+  });
+
+  it('Cancels buy order', async () => {
+    // Setup
+    const buyer = await helpers.user3();
+    const buyerMarketplace = marketplace.connect(buyer);
+    const collection = tokenCollectionFactory.attach(await marketplace.collections(1));
+
+    // Invalid cancel
+    await expect(buyerMarketplace.cancelBuyOrder(55))
+    .revertedWith('Order doesn\'t exist or sender is not the creator');
+    await expect(buyerMarketplace.cancelBuyOrder(4))
+    .revertedWith('Order doesn\'t exist or sender is not the creator');
+
+    const balanceBeforeCancel = await buyer.getBalance();
+    await expect(await buyerMarketplace.cancelBuyOrder(5))
+    .emit(buyerMarketplace, 'BuyOrderCancelled')
+    .withArgs(
+      collection.address, 1, helpers.ethToWei('2.0'), buyer.address
+    );
+
+    expect(await marketplace.lockedBalance()).equal(0);
+    const newAddressBalance = await buyer.getBalance();
+    expect(newAddressBalance).above(balanceBeforeCancel);
+  });
+
+  it('Get has collection and order boudries', async () => {
+    await expect(marketplace.getOrder(55))
+    .revertedWith('Index must be: 0 < _id <= ordersCount');
+
+    await expect(marketplace.getCollection(55))
+    .revertedWith('Index must be: 0 < _id <= collectionsCount');
+  });
+
+  it('Withdraws fees', async () => {
+    const owner = await helpers.owner();
+    const nonOwner = await helpers.user2();
+    const amount = helpers.ethToWei('0.1');
+    const marketBalance = await marketplace.balance();
+    await expect(await marketplace.withdraw(owner.address, amount))
+    .emit(marketplace, 'FeesWithdrawn')
+    .withArgs(owner.address, amount);
+
+    // Invalid
+    await expect(marketplace.withdraw(owner.address, marketBalance))
+    .revertedWith('Amount must be lte to balance');
+    await expect(marketplace.connect(nonOwner).withdraw(owner.address, amount))
+    .revertedWith('Ownable: caller is not the owner'); 
   });
 });

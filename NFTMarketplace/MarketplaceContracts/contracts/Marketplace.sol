@@ -243,7 +243,7 @@ contract Marketplace is Ownable {
     require(order.tokenOwner == seller, 'Only token owner can execute buy order');
 
     IERC721 collection = IERC721(order.collection);
-    require(collection.ownerOf(order.token) == seller);
+    require(collection.ownerOf(order.token) == seller, 'Seller must be token owner');
     _requireMarketplaceApprover(collection, seller, order.token);
     
     uint fee = calculateFeeFor(order.price);
