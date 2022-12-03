@@ -28,9 +28,11 @@ describe('Marketplace', () => {
   });
 
   it('Should create collection', async () => {
-    await marketplace.createCollection(
+    await expect(await marketplace.createCollection(
       'Collection1', 'C1', 'First collection', 'baseUri.com/'
-    );
+    ))
+    .emit(marketplace, 'CollectionAdded')
+    .withArgs('Collection1', 'C1', (await helpers.owner()).address);
 
     expect(await marketplace.collectionsCount()).equal(1);
   });
@@ -40,7 +42,9 @@ describe('Marketplace', () => {
       'Collection2', 'C2', 'Second collection', 'baseUriC2.com/'
     );
 
-    await marketplace.addCollection(tokenCollection.address);
+    await expect(await marketplace.addCollection(tokenCollection.address))
+    .emit(marketplace, 'CollectionAdded')
+    .withArgs(tokenCollection.name, tokenCollection.symbol, (await helpers.owner()).address);;
 
     expect(await marketplace.collectionsCount()).equal(2);
   });
@@ -54,9 +58,14 @@ describe('Marketplace', () => {
   });
 
   it('Sets market fee', async () => {
-    await marketplace.setMarketFee(50);
-    expect(await marketplace.feePercentage()).equal(50);
+    // Owner sets market fee
+    await expect(marketplace.setMarketFee(50))
+    .emit(marketplace, 'MarketFeeSet')
+    .withArgs(50);
 
+    expect(await marketplace.feePercentage()).equal(50)
+    
+    // Invalid cases of setting market fee
     await expect(marketplace.setMarketFee(1001))
     .to.be.revertedWith('Fee must be between 0 and 1000');
 
@@ -74,15 +83,23 @@ describe('Marketplace', () => {
     
     const tokenCollectionFactory = await ethers.getContractFactory('TokenCollection');
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(user1);
+    
+    // Mint two tokens
     await collection.mint(user2.address, 'hash123');
-    await collection.mint(user2.address, 'hash345');
+    await expect(await collection.mint(user2.address, 'hash345'))
+    .emit(collection, 'TokenMinted')
+    .withArgs(1, user2.address, user1.address);
     
     await collection.connect(user2).approve(marketplace.address, 1);
 
     // Make order
+    const priceWei = helpers.ethToWei('1.0');
     const user2Marketplace = marketplace.connect(user2);
-    await user2Marketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('1.0'));
+    await expect(await user2Marketplace.makeSellOrder(collection.address, 1, priceWei))
+    .emit(user2Marketplace, 'SellOrderCreated')
+    .withArgs(collection.address, 1, priceWei, user2.address);
 
+    // Invalid cases of making a sell order
     await expect(user2Marketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('1.0')))
     .revertedWith('A sell order already exists');
     await expect(user2Marketplace.makeSellOrder(collection.address, 0, helpers.ethToWei('1.0')))
@@ -92,6 +109,7 @@ describe('Marketplace', () => {
 
     expect(await marketplace.ordersCount()).equal(1);
 
+    // Check if order is created correctly
     const order = await marketplace.getOrder(1);
     expect(order.price).equal(1000000000000000000n);
     expect(order.createdBy).equal(user2.address);
@@ -127,12 +145,18 @@ describe('Marketplace', () => {
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
 
     expect(await collection.ownerOf(1)).equal(seller.address);
-    await user1Marketplace.executeSellOrder(1, buyer.address, {
-      value: helpers.ethToWei('2.0')
-    });
+    await expect(
+      await user1Marketplace.executeSellOrder(1, buyer.address, {
+        value: helpers.ethToWei('2.0')
+      })
+    ).emit(user1Marketplace, 'SellOrderExecuted')
+    .withArgs(
+      collection.address, 1, helpers.ethToWei('1.0'), buyer.address,
+      950000000000000000n, 50000000000000000n
+    );
 
     expect(await collection.ownerOf(1)).equal(buyer.address);
-    expect(await seller.getBalance()).above(BigInt('10000949605000000000000'));
+    expect(await seller.getBalance()).above(BigInt('10000949400000000000000'));
     expect(await marketplace.balance()).equal(BigInt('50000000000000000'));
   });
 
@@ -141,20 +165,22 @@ describe('Marketplace', () => {
     const buyer = await helpers.user2();
     const sellerMarketplace = marketplace.connect(seller);
 
+    // Invalid execute of sell order
     await expect(sellerMarketplace.executeSellOrder(55, seller.address))
     .revertedWith('Order doesn\'t exist');
 
+    // Make sell order
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
     await collection.approve(sellerMarketplace.address, 1);
     await sellerMarketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('2'));
 
+    // Invalid execute of sell order
     await expect(sellerMarketplace.executeSellOrder(1, buyer.address))
     .revertedWith('Order must have status open');
-
     await expect(sellerMarketplace.executeSellOrder(2, buyer.address))
     .revertedWith('Not enought ether sent');
 
-    // Branch - Nothing to return
+    // Executing sell order, no change return to buyer
     await marketplace.connect(buyer).executeSellOrder(2, buyer.address, {
       value: helpers.ethToWei('2')
     });
@@ -176,10 +202,13 @@ describe('Marketplace', () => {
     const buyer = await helpers.user1();
     const sellerMarketplace = marketplace.connect(seller);
 
-
+    // Make sell order
+    const priceWei = helpers.ethToWei('4');
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
     await collection.approve(sellerMarketplace.address, 1);
-    await sellerMarketplace.makeSellOrder(collection.address, 1, helpers.ethToWei('4'));
+    await sellerMarketplace.makeSellOrder(collection.address, 1, priceWei);
+
+    // Invalid cancel cases
     await expect(sellerMarketplace.cancelSellOrder(55))
     .revertedWith('Order doesn\'t exist');
     await expect(sellerMarketplace.cancelSellOrder(1))
@@ -187,8 +216,12 @@ describe('Marketplace', () => {
     await expect(marketplace.connect(buyer).cancelSellOrder(3))
     .revertedWith('Only original token owner can cancel order');
 
-    await sellerMarketplace.cancelSellOrder(3);
+    // Successful cancel
+    await expect(await sellerMarketplace.cancelSellOrder(3))
+    .emit(sellerMarketplace, 'SellOrderCancelled')
+    .withArgs(collection.address, 1, priceWei, seller.address);
 
+    // Check order updated as expected
     const order = await marketplace.getOrder(3);
     expect(order.price).equal(4000000000000000000n);
     expect(order.createdBy).equal(seller.address);

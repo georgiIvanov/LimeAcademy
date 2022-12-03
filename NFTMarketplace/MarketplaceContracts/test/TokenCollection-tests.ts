@@ -33,7 +33,9 @@ describe('TokenCollection', () => {
     const user1 = await helpers.user1();
     const user2 = await helpers.user2();
     const user3 = await helpers.user3();
-    await tokenCollection.mint(user1.address, 'hash123');
+    await expect(await tokenCollection.mint(user1.address, 'hash123'))
+    .emit(tokenCollection, 'TokenMinted')
+    .withArgs(0, user1.address, (await helpers.owner()).address);
 
     const user1Collection = tokenCollection.connect(user1);
     await user1Collection.approve(user2.address, 0);
