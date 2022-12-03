@@ -11,6 +11,22 @@ import "hardhat/console.sol";
 contract Marketplace is Ownable {
   using Counters for Counters.Counter;
 
+  event MarketFeeSet(uint percentage);
+  event FeesWithdrawn(address to, uint amount);
+  event CollectionAdded(string name, string symbol, address by);
+  event SellOrderCreated(address collection, uint tokenId, uint price, address by);
+  event SellOrderCancelled(address collection, uint tokenId, uint price, address by);
+  event SellOrderExecuted(
+    address collection, uint tokenId, uint price, address by,
+    uint sellerReceivable, uint marketplaceReceivable
+  );
+  event BuyOrderCreated(address collection, uint tokenId, uint price, address by);
+  event BuyOrderCancelled(address collection, uint tokenId, uint price, address by);
+  event BuyOrderExecuted(
+    address collection, uint tokenId, uint price, address by,
+    uint sellerReceivable, uint marketplaceReceivable
+  );
+
   // number between 0 and 1000
   uint16 public feePercentage;
 
@@ -63,12 +79,14 @@ contract Marketplace is Ownable {
     require(_newFeePercentage >= 0 && _newFeePercentage <= 1000,
     'Fee must be between 0 and 1000');
     feePercentage = _newFeePercentage;
+    emit MarketFeeSet(_newFeePercentage);
   }
 
   function withdraw(address _to, uint _amount) onlyOwner public {
     require(_amount <= balance(), 'Amount must be lte to balance');
     (bool sent, ) = address(_to).call{ value: _amount }('');
     require(sent, 'Failed to send ether to seller');
+    emit FeesWithdrawn(_to, _amount);
   }
 
   function createCollection(
@@ -93,9 +111,11 @@ contract Marketplace is Ownable {
       'Parameter must implement IERC721Metadata & IERC721Enumerable'
     );
 
-    collections[collectionCounter.current()] = IERC721Metadata(_collection);
+    IERC721Metadata collection = IERC721Metadata(_collection);
+    collections[collectionCounter.current()] = collection;
     collectionKeys[_collection] = collectionCounter.current();
     collectionCounter.increment();
+    emit CollectionAdded(collection.name(), collection.symbol(), _msgSender());
   }
 
   function makeSellOrder(
@@ -123,6 +143,7 @@ contract Marketplace is Ownable {
     orders[ordersCounter.current()] = order;
     sellOrderIds[_collection][_tokenId] = ordersCounter.current();
     ordersCounter.increment();
+    emit SellOrderCreated(_collection, _tokenId, _price, _msgSender());
   }
 
   function cancelSellOrder(
@@ -139,6 +160,7 @@ contract Marketplace is Ownable {
 
     order.status = OrderStatus.cancelled;
     delete sellOrderIds[order.collection][order.token];
+    emit SellOrderCancelled(order.collection, order.token, order.price, _msgSender());
   }
 
   function executeSellOrder(uint _orderId, address _sendTo) public payable {
@@ -168,6 +190,9 @@ contract Marketplace is Ownable {
     order.status = OrderStatus.executed;
     delete sellOrderIds[order.collection][order.token];
     collection.safeTransferFrom(order.tokenOwner, _sendTo, order.token);
+    emit SellOrderExecuted(
+      order.collection, order.token, order.price, _msgSender(), amountReceivedBySeller, fee
+    );
   }
 
   function makeBuyOrder(
@@ -190,6 +215,7 @@ contract Marketplace is Ownable {
     buyOrderIds[_collection][_tokenId][_msgSender()] = ordersCounter.current();
     ordersCounter.increment();
     lockedBalance += msg.value;
+    emit BuyOrderCreated(_collection, _tokenId, msg.value, _msgSender());
   }
 
   function cancelBuyOrder(uint _orderId) public {
@@ -205,6 +231,7 @@ contract Marketplace is Ownable {
     lockedBalance -= order.price;
     (bool sent, ) = buyer.call{ value: order.price }('');
     require(sent, 'Failed to return ether to buy order creator');
+    emit BuyOrderCancelled(order.collection, order.token, order.price, buyer);
   }
 
   function executeBuyOrder(uint _orderId) public {
@@ -227,6 +254,9 @@ contract Marketplace is Ownable {
     order.status = OrderStatus.executed;
     delete buyOrderIds[order.collection][order.token][order.createdBy];
     collection.safeTransferFrom(seller, order.createdBy, order.token);
+    emit BuyOrderExecuted(
+      order.collection, order.token, order.price, seller, amountReceivedBySeller, fee
+    );
   }
 
   function collectionsCount() public view returns (uint) {

@@ -132,7 +132,7 @@ describe('Marketplace', () => {
     });
 
     expect(await collection.ownerOf(1)).equal(buyer.address);
-    expect(await seller.getBalance()).above(BigInt('10000949608000000000000'));
+    expect(await seller.getBalance()).above(BigInt('10000949605000000000000'));
     expect(await marketplace.balance()).equal(BigInt('50000000000000000'));
   });
 

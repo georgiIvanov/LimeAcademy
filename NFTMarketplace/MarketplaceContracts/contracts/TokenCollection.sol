@@ -10,6 +10,8 @@ import 'hardhat/console.sol';
 contract TokenCollection is ERC721Enumerable {
     using Counters for Counters.Counter;
 
+    event TokenMinted(uint tokenId, address to);
+
     string public description;
     string public baseUri;
 
@@ -40,6 +42,7 @@ contract TokenCollection is ERC721Enumerable {
     function mint(address _to, string calldata _metadataHash) public {
         super._safeMint(_to, tokenIdCounter.current());
         metadata[tokenIdCounter.current()] = _metadataHash;
+        emit TokenMinted(tokenIdCounter.current(), _to);
         tokenIdCounter.increment();
     }
 
