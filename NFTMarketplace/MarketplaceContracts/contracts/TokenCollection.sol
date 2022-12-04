@@ -35,7 +35,6 @@ contract TokenCollection is ERC721Enumerable {
     }
 
     // Mints a token from the collection.
-    // Marketplace is set as approver.
     // 
     // - `metadataHash` the ipfs hash of the token's metadata
     //
