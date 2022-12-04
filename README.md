@@ -1,4 +1,4 @@
-> Repo for the LimeAcademy blockchain development course.
+# LimeAcademy blockchain development course repo
 
 > For more info on how to run the projects/scripts see the readme files in each folder.
 
