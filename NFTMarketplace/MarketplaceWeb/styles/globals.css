@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.background { 
+	background: #F9F7F7; 
+}
+
+.component-background { 
+	background: #DBE2EF; 
+}
+
+.element-main { 
+	background: #3F72AF; 
+}
+
+.element-secondary { 
+	background: #112D4E; 
+}
+
+.text-main {
+  color: #3F72AF;
+}
+
+.text-secondary {
+  color: #112D4E;
+}
+
+body {
+  background: #F9F7F7;
+}

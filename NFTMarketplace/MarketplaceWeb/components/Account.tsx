@@ -8,9 +8,10 @@ import { formatEtherscanLink, shortenHex } from "../util";
 
 type AccountProps = {
   triedToEagerConnect: boolean;
+  balance: JSX.Element;
 };
 
-const Account = ({ triedToEagerConnect }: AccountProps) => {
+const Account = ({ triedToEagerConnect, balance }: AccountProps) => {
   const { active, error, activate, deactivate, chainId, account, setError } =
     useWeb3React();
 
@@ -58,7 +59,7 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
                 }
               });
             }}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+            className="inline-block text-sm px-4 py-2 leading-none border rounded text-main background border-white hover:border-transparent hover:text-secondary hover:bg-white mt-4 mr-4 lg:mt-0"
           >
             {isMetaMaskInstalled ? "Connect to MetaMask" : "Connect to Wallet"}
           </button>
@@ -79,7 +80,7 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
               }
             }
           }}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          className="inline-block text-sm px-4 py-2 leading-none border rounded text-main background border-white hover:border-transparent hover:text-secondary hover:bg-white mt-4 lg:mt-0"
           >
           Wallet Connect
         </button>)
@@ -96,10 +97,13 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
           target: "_blank",
           rel: "noopener noreferrer",
         }}
-        className='py-2 px-2 bg-blue-100'
+        className='py-2 px-2 text-main'
       >
-        {ENSName || `${shortenHex(account, 4)}`}
+        Address: {ENSName || `${shortenHex(account, 4)}`}
       </a>
+      <span className="text-main mr-12">
+          {balance}
+      </span>
       <button
         onClick={async () => {
           try {
@@ -108,7 +112,7 @@ const Account = ({ triedToEagerConnect }: AccountProps) => {
             setError(error);
           }
         }}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+        className="inline-block text-sm px-4 py-2 leading-none border rounded text-main background border-white hover:border-transparent hover:text-secondary hover:bg-white mt-4 lg:mt-0"
         >
         Disconnect
       </button>
