@@ -11,4 +11,4 @@ export const walletConnectSupportedNetworks: Networks = {
 // Network chain ids
 export const supportedMetamaskNetworks = [1, 3, 4, 5, 42];
 
-export const BOOKLIBRARY_ADDRESS = "0x6Ac9fcCe1A0E998620dDC5cF7603bD1864Aa621c";
+export const MARKETPLACE_ADDRESS = "0xC7aBA17fA38Bcc13E7a8992929b1d815E9682FC0";

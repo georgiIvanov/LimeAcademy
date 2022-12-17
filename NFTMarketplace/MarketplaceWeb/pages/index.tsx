@@ -4,7 +4,7 @@ import Link from "next/link";
 import Account from "../components/Account";
 import NativeCurrencyBalance from "../components/NativeCurrencyBalance";
 import TokenBalance from "../components/TokenBalance";
-import { BOOKLIBRARY_ADDRESS } from "../constants";
+import { MARKETPLACE_ADDRESS } from "../constants";
 import useEagerConnect from "../hooks/useEagerConnect";
 
 function Home() {
@@ -15,7 +15,7 @@ function Home() {
   return (
     <div>
       <Head>
-        <title>LimeAcademy-boilerplate</title>
+        <title>NFT Marketplace</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -28,10 +28,14 @@ function Home() {
         </nav>
       </header>
 
-      <main>
-        <h1 className="text-3xl font-bold underline">
-          Template project
+      <main className="w-full">
+        <h1 className="text-3xl font-bold underline content-center text-center">
+          NFT Marketplace
         </h1>
+        {isConnected && (
+          // TODO: Add main component here
+          <></>
+        )}
       </main>
     </div>
   );
