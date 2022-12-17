@@ -1,5 +1,9 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import dotenv from 'dotenv';
+import { interact } from "./scripts/interact";
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -10,7 +14,18 @@ const config: HardhatUserConfig = {
         runs: 10
       }
     }
+  },
+  networks: {
+    goerli: {
+      url: process.env.INFURA_API_KEY,
+      accounts: [process.env.GOERLI_PRIVATE_KEY || '']
+    }
   }
 };
 
 export default config;
+
+task('interact', 'Interacts with book library contract')
+.setAction(async (args, hre, runSuper) => {
+  await interact(hre.ethers);
+});
