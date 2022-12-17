@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import "@openzeppelin/contracts/utils/Counters.sol";
 import './TokenCollection.sol';
+import './ITokenCollection.sol';
 import './Order.sol';
 
 import "hardhat/console.sol";
@@ -34,8 +35,8 @@ contract Marketplace is Ownable {
 
   Counters.Counter private collectionCounter;
 
-  // collectionId => IERC721Metadata (token collection)
-  mapping(uint => IERC721Metadata) public collections;
+  // collectionId => ITokenCollection (token collection)
+  mapping(uint => ITokenCollection) public collections;
 
   Counters.Counter private ordersCounter;
 
@@ -111,7 +112,7 @@ contract Marketplace is Ownable {
       'Parameter must implement IERC721Metadata & IERC721Enumerable'
     );
 
-    IERC721Metadata collection = IERC721Metadata(_collection);
+    ITokenCollection collection = ITokenCollection(_collection);
     collections[collectionCounter.current()] = collection;
     collectionKeys[_collection] = collectionCounter.current();
     collectionCounter.increment();
@@ -267,10 +268,10 @@ contract Marketplace is Ownable {
     return ordersCounter.current() - 1;
   }
 
-  function getCollection(uint _id) public view returns(IERC721Metadata) {
+  function getCollection(uint _id) public view returns(ITokenCollection) {
     require(_id > 0 && _id <= collectionsCount(), 
     'Index must be: 0 < _id <= collectionsCount');
-    return IERC721Metadata(collections[_id]);
+    return ITokenCollection(collections[_id]);
   }
 
   function getOrder(uint _id) public view returns (Order memory) {
