@@ -22,7 +22,7 @@ describe('TokenCollection', () => {
   });
 
   it('Should mint', async () => {
-    const user = await helpers.user1();
+    const user = await helpers.user1(ethers);
     await tokenCollection.mint(user.address, 'hash123');
     const tokenUri = await tokenCollection.tokenURI(0);
     expect(tokenUri).equal('https://base.url.com/hash123');
@@ -30,12 +30,12 @@ describe('TokenCollection', () => {
   });
 
   it('Should transfer via approved', async () => {
-    const user1 = await helpers.user1();
-    const user2 = await helpers.user2();
-    const user3 = await helpers.user3();
+    const user1 = await helpers.user1(ethers);
+    const user2 = await helpers.user2(ethers);
+    const user3 = await helpers.user3(ethers);
     await expect(await tokenCollection.mint(user1.address, 'hash123'))
     .emit(tokenCollection, 'TokenMinted')
-    .withArgs(0, user1.address, (await helpers.owner()).address);
+    .withArgs(0, user1.address, (await helpers.owner(ethers)).address);
 
     const user1Collection = tokenCollection.connect(user1);
     await user1Collection.approve(user2.address, 0);

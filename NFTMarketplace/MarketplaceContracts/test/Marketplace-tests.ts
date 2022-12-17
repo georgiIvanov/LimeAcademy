@@ -1,9 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Contract } from 'hardhat/internal/hardhat-network/stack-traces/model';
 import { 
   Marketplace, Marketplace__factory,
-  TokenCollection,
   TokenCollection__factory
 } from '../typechain-types';
 import * as helpers from './../scripts/helpers';
@@ -32,7 +30,7 @@ describe('Marketplace', () => {
       'Collection1', 'C1', 'First collection', 'baseUri.com/'
     ))
     .emit(marketplace, 'CollectionAdded')
-    .withArgs('Collection1', 'C1', (await helpers.owner()).address);
+    .withArgs('Collection1', 'C1', (await helpers.owner(ethers)).address);
 
     expect(await marketplace.collectionsCount()).equal(1);
   });
@@ -44,7 +42,7 @@ describe('Marketplace', () => {
 
     await expect(await marketplace.addCollection(tokenCollection.address))
     .emit(marketplace, 'CollectionAdded')
-    .withArgs(tokenCollection.name, tokenCollection.symbol, (await helpers.owner()).address);;
+    .withArgs(tokenCollection.name, tokenCollection.symbol, (await helpers.owner(ethers)).address);;
 
     expect(await marketplace.collectionsCount()).equal(2);
   });
@@ -69,7 +67,7 @@ describe('Marketplace', () => {
     await expect(marketplace.setMarketFee(1001))
     .to.be.revertedWith('Fee must be between 0 and 1000');
 
-    const user1 = await helpers.user1();
+    const user1 = await helpers.user1(ethers);
     const userMarketplace = marketplace.connect(user1);
     
     await expect(userMarketplace.setMarketFee(30))
@@ -78,8 +76,8 @@ describe('Marketplace', () => {
 
   it('Makes sell order', async () => {
     // Create token
-    const user1 = await helpers.user1();
-    const user2 = await helpers.user2();
+    const user1 = await helpers.user1(ethers);
+    const user2 = await helpers.user2(ethers);
     
     const tokenCollectionFactory = await ethers.getContractFactory('TokenCollection');
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(user1);
@@ -121,8 +119,8 @@ describe('Marketplace', () => {
   });
 
   it('Makes invalid sell order', async () => {
-    const user1 = await helpers.user1();
-    const tokenOwner = await helpers.user2();
+    const user1 = await helpers.user1(ethers);
+    const tokenOwner = await helpers.user2(ethers);
     const emptyContractFactory = await ethers.getContractFactory('EmptyIERC165');
     const emptyContract = await emptyContractFactory.deploy();
 
@@ -142,8 +140,8 @@ describe('Marketplace', () => {
   });
 
   it('Executes sell order', async () => {
-    const buyer = await helpers.user1();
-    const seller = await helpers.user2();
+    const buyer = await helpers.user1(ethers);
+    const seller = await helpers.user2(ethers);
 
     const user1Marketplace = marketplace.connect(buyer);
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
@@ -165,8 +163,8 @@ describe('Marketplace', () => {
   });
 
   it('Tries to execute invalid sell order', async () => {
-    const seller = await helpers.user1();
-    const buyer = await helpers.user2();
+    const seller = await helpers.user1(ethers);
+    const buyer = await helpers.user2(ethers);
     const sellerMarketplace = marketplace.connect(seller);
 
     // Invalid execute of sell order
@@ -202,8 +200,8 @@ describe('Marketplace', () => {
   });
 
   it('Cancels sell order', async () => {
-    const seller = await helpers.user2();
-    const buyer = await helpers.user1();
+    const seller = await helpers.user2(ethers);
+    const buyer = await helpers.user1(ethers);
     const sellerMarketplace = marketplace.connect(seller);
 
     // Make sell order
@@ -238,9 +236,9 @@ describe('Marketplace', () => {
 
   it('Makes buy order', async () => {
     // Setup
-    const seller = await helpers.user2();
-    const buyer = await helpers.user1();
-    const secondBuyer = await helpers.user3();
+    const seller = await helpers.user2(ethers);
+    const buyer = await helpers.user1(ethers);
+    const secondBuyer = await helpers.user3(ethers);
     const buyerMarketplace = marketplace.connect(buyer);
     const priceWei = helpers.ethToWei('5');
     const priceWei2 = helpers.ethToWei('2');
@@ -282,9 +280,9 @@ describe('Marketplace', () => {
 
   it('Tries to make invalid buy order', async () => {
     // Setup
-    const seller = await helpers.user2();
-    const buyer = await helpers.owner();
-    const existingBuyer = await helpers.user1();
+    const seller = await helpers.user2(ethers);
+    const buyer = await helpers.owner(ethers);
+    const existingBuyer = await helpers.user1(ethers);
     const priceWei = helpers.ethToWei('5');
 
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1)).connect(seller);
@@ -315,9 +313,9 @@ describe('Marketplace', () => {
 
   it('Executes buy order', async () => {
     // Setup
-    const seller = await helpers.user2();
-    const buyer = await helpers.user1();
-    const secondBuyer = await helpers.user3();
+    const seller = await helpers.user2(ethers);
+    const buyer = await helpers.user1(ethers);
+    const secondBuyer = await helpers.user3(ethers);
     const sellerMarketplace = marketplace.connect(seller);
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1));
 
@@ -348,7 +346,7 @@ describe('Marketplace', () => {
 
   it('Cancels buy order', async () => {
     // Setup
-    const buyer = await helpers.user3();
+    const buyer = await helpers.user3(ethers);
     const buyerMarketplace = marketplace.connect(buyer);
     const collection = tokenCollectionFactory.attach(await marketplace.collections(1));
 
@@ -379,8 +377,8 @@ describe('Marketplace', () => {
   });
 
   it('Withdraws fees', async () => {
-    const owner = await helpers.owner();
-    const nonOwner = await helpers.user2();
+    const owner = await helpers.owner(ethers);
+    const nonOwner = await helpers.user2(ethers);
     const amount = helpers.ethToWei('0.1');
     const marketBalance = await marketplace.balance();
     await expect(await marketplace.withdraw(owner.address, amount))
