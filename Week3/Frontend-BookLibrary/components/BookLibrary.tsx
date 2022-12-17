@@ -29,7 +29,7 @@ export class BookLibraryState {
 export const BookLibrary = (): JSX.Element => {
   const bookLibraryContract = useBookLibraryContract(BOOKLIBRARY_ADDRESS);
   const { account } = useWeb3React<Web3Provider>();
-  const [state, setState] = useState<BookLibraryState>(new BookLibraryState())
+  const [state, setState] = useState<BookLibraryState>(new BookLibraryState());
 
   useEffect(() => {
     getBookLibraryInfo();
