@@ -59,32 +59,14 @@ const Account = ({ triedToEagerConnect, balance }: AccountProps) => {
                 }
               });
             }}
-            className="inline-block text-sm px-4 py-2 leading-none border rounded text-main background border-white hover:border-transparent hover:text-secondary hover:bg-white mt-4 mr-4 lg:mt-0"
+            className="inline-block text-sm px-4 py-2 leading-none border rounded text-white element-main border-white hover:border-transparent hover:text-blue-400 hover:bg-white mt-4 mr-4 lg:mt-0"
           >
-            {isMetaMaskInstalled ? "Connect to MetaMask" : "Connect to Wallet"}
+            {isMetaMaskInstalled ? "Connect" : "Connect to Wallet"}
           </button>
 
         ) : (
           <button onClick={startOnboarding}>Install Metamask</button>
         )}
-        {(<button
-          disabled={connecting}
-          onClick={async () => {
-            try {
-              await activate(walletConnect(), undefined, true)
-            } catch (e) {
-              if (error instanceof UserRejectedRequestError) {
-                setConnecting(false);
-              } else {
-                setError(error);
-              }
-            }
-          }}
-          className="inline-block text-sm px-4 py-2 leading-none border rounded text-main background border-white hover:border-transparent hover:text-secondary hover:bg-white mt-4 lg:mt-0"
-          >
-          Wallet Connect
-        </button>)
-        }
       </div>
     );
   }

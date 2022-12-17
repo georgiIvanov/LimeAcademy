@@ -4,7 +4,9 @@ import Link from "next/link";
 
 import NativeCurrencyBalance from "../components/NativeCurrencyBalance";
 import { NavigationBar } from "../components/NavigationBar";
+import Account from "../components/Account";
 import TokenBalance from "../components/TokenBalance";
+import { Welcome } from "../components/Welcome";
 import { MARKETPLACE_ADDRESS } from "../constants";
 import useEagerConnect from "../hooks/useEagerConnect";
 
@@ -12,6 +14,10 @@ function Home() {
   const { account, library } = useWeb3React();
   const triedToEagerConnect = useEagerConnect();
   const isConnected = typeof account === "string" && !!library;
+
+  let content = isConnected ?
+  <></>
+  : <Welcome connect={<Account triedToEagerConnect={triedToEagerConnect} balance={<></>} /> } />
 
   return (
     <div className="background">
@@ -25,13 +31,7 @@ function Home() {
       </header>
 
       <main className="w-full">
-        <h1 className="text-3xl font-bold underline content-center text-center">
-          NFT Marketplace
-        </h1>
-        {isConnected && (
-          // TODO: Add main component here
-          <></>
-        )}
+        {content}
       </main>
     </div>
   );
