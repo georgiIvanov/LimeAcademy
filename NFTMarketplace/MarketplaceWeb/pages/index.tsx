@@ -1,12 +1,9 @@
 import { useWeb3React } from "@web3-react/core";
 import Head from "next/head";
-import Link from "next/link";
 import NativeCurrencyBalance from "../components/NativeCurrencyBalance";
 import { NavigationBar } from "../components/NavigationBar";
 import Account from "../components/Account";
-import TokenBalance from "../components/TokenBalance";
 import { Welcome } from "../components/Welcome";
-import { MARKETPLACE_ADDRESS } from "../constants";
 import useEagerConnect from "../hooks/useEagerConnect";
 import { Route } from "../constants/route";
 import { useState } from "react";
@@ -21,7 +18,6 @@ function Home() {
   let content = isConnected
     ? <App route={route}/>
     : <Welcome connect={<Account triedToEagerConnect={triedToEagerConnect} balance={<></>} />} />
-
 
   return (
     <div className="background">

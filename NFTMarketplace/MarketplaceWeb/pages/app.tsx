@@ -2,7 +2,6 @@ import { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { Contract } from "ethers";
 import { useEffect, useState } from "react";
-import { MARKETPLACE_ADDRESS } from "../constants";
 import { Route } from "../constants/route";
 import { ITokenCollection } from "../contracts/types";
 import ITokenCollection_abi from "../contracts/ITokenCollection.json";
@@ -22,7 +21,7 @@ class AppState {
 }
 
 export const App = ({ route }: AppProps): JSX.Element => {
-  const marketplaceContract = useMarketplaceContract(MARKETPLACE_ADDRESS);
+  const marketplaceContract = useMarketplaceContract(process.env.MARKETPLACE_ADDRESS);
   const { library, account } = useWeb3React<Web3Provider>();
   const [state, setState] = useState<AppState>(new AppState());
 

@@ -1,15 +1,15 @@
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmirshko%2Fnext-web3-boilerplate)
+# Setup
 
-This is a default [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app), customized as the default boilerplate for new Web3 projects.
+Create `.env.local` file containing the following keys:
+`IPFS_PROJECT_ID='[Infura_Project_Id]'`
+`IPFS_API_KEY='[Infura_IPFS_Api_Key]'`
+`MARKETPLACE_ADDRESS='0xC7aBA17fA38Bcc13E7a8992929b1d815E9682FC0'`
 
-## Features
+Run `npx next build` to verify everything is setup correctly.
 
-- Separate packages from [ethers.js](https://docs.ethers.io/v5/) for improved tree-shaking, often only ethers Contracts
-- Hooks-first approach to fetching and caching data from Contracts and memoization for performance with [SWR](https://swr.vercel.app)
-- [web3-react](https://github.com/NoahZinsmeister/web3-react) for ease of connecting to Web3 providers with a solid API
-- Auto-generates types for the contract ABIs in the `/contracts` folder via [TypeChain](https://github.com/ethereum-ts/TypeChain)
-- MetaMask connection
-- WalletConnect connection
+`npm run dev` starts local instance.
+
+# Info
 
 ### Auto Contract Type Generation
 
@@ -26,20 +26,6 @@ export default function useMyContract() {
   return useContract<MY_CONTRACT>(CONTRACT_ADDRESS, MY_CONTRACT_ABI);
 }
 ```
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-Open [http://localhost:4001](http://localhost:4001) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
 
 ## Learn More
 

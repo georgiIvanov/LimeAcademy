@@ -56,7 +56,6 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
           selectedTitle={(col) => { return col.name; } }
           setSelected={(col) => { setCollection(col) }}
         />
-
         <span className="flex mx-auto">
           <ActionButton onClick={mint} title='Mint' disabled={spinner}/>
           {spinner && <Spinner />}
