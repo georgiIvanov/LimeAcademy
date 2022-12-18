@@ -1,0 +1,1 @@
+export const Spinner = () => <div className="loader object-none h-12 w-12"></div>;

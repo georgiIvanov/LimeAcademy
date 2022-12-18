@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MARKETPLACE_ADDRESS } from "../constants";
 import { Route } from "../constants/route";
 import useMarketplaceContract from "../hooks/useMarketplaceContract";
+import { Collection } from "./collection";
 
 type AppProps = {
   route: Route;
@@ -14,7 +15,7 @@ class AppState {
   collectionsCount: number;
 }
 
-export const App = ({route}: AppProps): JSX.Element => {
+export const App = ({ route }: AppProps): JSX.Element => {
   const marketplaceContract = useMarketplaceContract(MARKETPLACE_ADDRESS);
   const { account } = useWeb3React<Web3Provider>();
   const [state, setState] = useState<AppState>(new AppState());
@@ -37,7 +38,10 @@ export const App = ({route}: AppProps): JSX.Element => {
   switch (route) {
     case Route.Home: return <p>Home</p>
     case Route.Mint: return <p>Mint</p>
-    case Route.Collection: return <p>Collection</p>
+    case Route.Collection: return <Collection
+      marketplace={marketplaceContract}
+      getMarketplaceInfo={getMarketplaceInfo}
+    />
     case Route.Profile: return <p>Profile</p>
   }
 
