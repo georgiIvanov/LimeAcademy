@@ -4,10 +4,10 @@ import { Dropdown } from "../components/Dropdown";
 import { Spinner } from "../components/Spinner";
 import { TokenCollection } from "../contracts/types";
 import TokenCollection_abi from "../contracts/TokenCollection.json";
-import useContract from "../hooks/useContract";
 import { useIpfs } from "../hooks/useIpfs";
 import { Collection } from "../models/Collection";
 import { useWeb3React } from "@web3-react/core";
+import { Contract } from "ethers";
 
 type MintProps = {
   collections: Collection[]
@@ -21,6 +21,7 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
   const ipfs = useIpfs();
   const [image, setImage] = useState(null);
   const { library, account } = useWeb3React();
+  const [mintHash, setMintHash] = useState<string>(null);
   
   const tokenNameInput = (input: ChangeEvent<HTMLInputElement>) => {
     setName(input.target.value);
@@ -38,7 +39,7 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
     if (!files || files.length === 0) {
       return alert("No files selected");
     }
-
+    setSpinner(true);
     const file = files[0];
     const result = await ipfs.add(file);
     console.log(result);
@@ -62,15 +63,25 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
     try {
       const result = await ipfs.add(Buffer.from(JSON.stringify(metadata)));
       console.log(result);
-      const collection = useContract(
-        selectedCollection.contract.address, TokenCollection_abi
+      const collection = new Contract(
+        selectedCollection.contract.address, TokenCollection_abi, library.getSigner(account)
       ) as TokenCollection;
       
       const tx = await collection.mint(account, result.path);
       await tx.wait();
+      mintSuccess(tx.hash);
     } finally {
       setSpinner(false);
     }
+  };
+
+  const mintSuccess = (mintHash: string) => {
+    setMintHash(mintHash);
+    setImage(null);
+    setName(null);
+    setDescription(null);
+    setCollection(null);
+    setSpinner(false);
   };
 
   return (
@@ -118,7 +129,7 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
               <img
               // using this subdomain does not require authorisation of the request
               src={"https://skywalker.infura-ipfs.io/ipfs/" + image.path}
-              style={{ maxWidth: "400px", margin: "15px" }}
+              style={{ maxWidth: "200px"}}
               key={image.cid.toString()}
             />
             )}
@@ -131,6 +142,19 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
             title='Mint'
             disabled={spinner || image == null || name.length == 0 || description.length == 0} />
           {spinner && <Spinner />}
+          {
+            mintHash != null &&
+            <a
+              {...{
+                href: "https://goerli.etherscan.io/tx/" + mintHash,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              }}
+              className='py-2 px-2 text-main'
+            >
+              Mint successful!
+            </a>
+          }
         </span>
       </div>
 
