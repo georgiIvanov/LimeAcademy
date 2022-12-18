@@ -1,6 +1,6 @@
 # Setup
 
-Create `.env.local` file containing the following keys:
+Create `.env.local` file (in root folder) containing the following keys:
 `IPFS_PROJECT_ID='[Infura_Project_Id]'`
 `IPFS_API_KEY='[Infura_IPFS_Api_Key]'`
 `MARKETPLACE_ADDRESS='0xC7aBA17fA38Bcc13E7a8992929b1d815E9682FC0'`
