@@ -1,5 +1,6 @@
 import { ChangeEvent, useState } from "react";
 import { ActionButton } from "../components/ActionButton";
+import { Dropdown } from "../components/Dropdown";
 import { Spinner } from "../components/Spinner";
 import { ITokenCollection } from "../contracts/types";
 import { Collection } from "../models/Collection";
@@ -11,6 +12,7 @@ type MintProps = {
 export const Mint = ({collections}: MintProps): JSX.Element => {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [selectedCollection, setCollection] = useState<Collection>(null);
   const [spinner, setSpinner] = useState<boolean>(false);
 
   const tokenNameInput = (input: ChangeEvent<HTMLInputElement>) => {
@@ -46,17 +48,14 @@ export const Mint = ({collections}: MintProps): JSX.Element => {
           />
         </label>
 
-        <ul>
-        {
-          collections.map((val, index) => {
-            return (
-              <li key={val.contract.address}>
-                {val.name}
-              </li>
-            );
-          })
-        }
-        </ul>
+        <span className="block required text-sm font-medium text-main">Collection</span>
+        <Dropdown
+          items={collections}
+          selected={selectedCollection}
+          itemKey={(col) => { return col.contract.address; }}
+          selectedTitle={(col) => { return col.name; } }
+          setSelected={(col) => { setCollection(col) }}
+        />
 
         <span className="flex mx-auto">
           <ActionButton onClick={mint} title='Mint' disabled={spinner}/>

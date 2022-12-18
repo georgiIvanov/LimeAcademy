@@ -81,6 +81,4 @@ export const App = ({ route }: AppProps): JSX.Element => {
     />
     case Route.Profile: return <p>Profile</p>
   }
-
-  return (<p>App</p>);
 }
