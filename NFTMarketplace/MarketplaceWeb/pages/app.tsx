@@ -9,6 +9,9 @@ import useMarketplaceContract from "../hooks/useMarketplaceContract";
 import { CreateCollection } from "./createCollection";
 import { Mint } from "./mint";
 import { Collection } from "../models/Collection";
+import { Home } from "./home";
+import { Token } from "../models/Token";
+import { useIpfs } from "../hooks/useIpfs";
 
 type AppProps = {
   route: Route;
@@ -24,6 +27,7 @@ export const App = ({ route }: AppProps): JSX.Element => {
   const marketplaceContract = useMarketplaceContract(process.env.MARKETPLACE_ADDRESS);
   const { library, account } = useWeb3React<Web3Provider>();
   const [state, setState] = useState<AppState>(new AppState());
+  const ipfs = useIpfs();
 
   useEffect(() => {
     getMarketplaceInfo();
@@ -35,6 +39,10 @@ export const App = ({ route }: AppProps): JSX.Element => {
     }
     getCollections();
   }, [state.collectionsCount]);
+
+  useEffect(() => {
+    getTokens();
+  }, [state.collections]);
 
   const getMarketplaceInfo = async () => {
     const marketplaceOwner = await marketplaceContract.owner();
@@ -63,7 +71,7 @@ export const App = ({ route }: AppProps): JSX.Element => {
         return null;
       }
     }));
-    
+
     const newState = {
       ...state,
       collections: collections
@@ -71,9 +79,36 @@ export const App = ({ route }: AppProps): JSX.Element => {
     setState(newState);
   }
 
+  const getTokens = async () => {
+    if (state.collections == undefined || state.collections.length == 0) {
+      return;
+    }
+
+    for (const col of state.collections) {
+      const positions = Array.from(Array(col.tokensCount).keys()).map(x => x + 1);
+      col.tokens = await Promise.all(positions.flatMap(async (pos) => {
+        const tokenId = await col.contract.tokenByIndex(pos - 1);
+        const metadataUri = await col.contract.tokenURI(tokenId);
+        const metadata = await (await fetch(metadataUri)).json();
+        return {
+          tokenId: tokenId,
+          metadataUri: metadataUri,
+          metadata: metadata
+        }
+      }));
+    }
+
+    const newState = {
+      ...state,
+      collections: state.collections
+    };
+
+    setState(newState);
+  };
+
   switch (route) {
-    case Route.Home: return <p>Home</p>
-    case Route.Mint: return <Mint collections={state.collections}/>
+    case Route.Home: return <Home />
+    case Route.Mint: return <Mint collections={state.collections} />
     case Route.Collection: return <CreateCollection
       marketplace={marketplaceContract}
       getMarketplaceInfo={getMarketplaceInfo}
