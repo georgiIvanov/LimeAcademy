@@ -10,7 +10,7 @@ type NavigationBarProps = {
 
 export const NavigationBar = ({triedToEagerConnect, balance, setRoute}: NavigationBarProps): JSX.Element => {
   return (
-    <nav className="flex items-center justify-between flex-wrap component-background p-6">
+    <nav className="flex component-background p-6">
       <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
         <div className="text-sm lg:flex-grow">
           <button

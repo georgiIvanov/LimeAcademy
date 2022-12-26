@@ -13,7 +13,7 @@ export const Home = ({collections}: HomeProps): JSX.Element => {
       </h1>
 
       {
-        <div className="justify-items-center grid grid-cols-3 gap-y-5">
+        <div className="grid grid-cols-3 gap-y-5">
           {
             collections.map((col) => {
               return col.tokens.map((token) => {
