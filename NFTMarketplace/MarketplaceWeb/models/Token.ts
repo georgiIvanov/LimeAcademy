@@ -3,7 +3,8 @@ import { BigNumber } from "ethers"
 export type Token = {
   tokenId: BigNumber;
   metadataUri: string;
-  metadata: TokenMetadata | string;
+  metadata: TokenMetadata;
+  ownerAddress: string;
 }
 
 export type TokenMetadata = {

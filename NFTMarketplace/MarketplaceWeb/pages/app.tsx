@@ -21,6 +21,12 @@ class AppState {
   marketplaceOwner: string;
   collectionsCount: number;
   collections: Collection[];
+
+  constructor() {
+    this.marketplaceOwner = '';
+    this.collectionsCount = 0;
+    this.collections = [];
+  }
 }
 
 export const App = ({ route }: AppProps): JSX.Element => {
@@ -34,7 +40,7 @@ export const App = ({ route }: AppProps): JSX.Element => {
   }, [account]);
 
   useEffect(() => {
-    if (state.collectionsCount == undefined || state.collectionsCount == 0) {
+    if (state.collectionsCount == 0) {
       return;
     }
     getCollections();
@@ -80,7 +86,7 @@ export const App = ({ route }: AppProps): JSX.Element => {
   }
 
   const getTokens = async () => {
-    if (state.collections == undefined || state.collections.length == 0) {
+    if (state.collections.length == 0) {
       return;
     }
 
@@ -89,11 +95,13 @@ export const App = ({ route }: AppProps): JSX.Element => {
       col.tokens = await Promise.all(positions.flatMap(async (pos) => {
         const tokenId = await col.contract.tokenByIndex(pos - 1);
         const metadataUri = await col.contract.tokenURI(tokenId);
+        const ownerAddress = await col.contract.ownerOf(tokenId);
         const metadata = await (await fetch(metadataUri)).json();
         return {
           tokenId: tokenId,
           metadataUri: metadataUri,
-          metadata: metadata
+          metadata: metadata,
+          ownerAddress: ownerAddress
         }
       }));
     }
@@ -107,7 +115,7 @@ export const App = ({ route }: AppProps): JSX.Element => {
   };
 
   switch (route) {
-    case Route.Home: return <Home />
+    case Route.Home: return <Home collections={state.collections} />
     case Route.Mint: return <Mint collections={state.collections} />
     case Route.Collection: return <CreateCollection
       marketplace={marketplaceContract}
