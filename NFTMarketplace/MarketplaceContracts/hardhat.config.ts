@@ -2,6 +2,7 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import dotenv from 'dotenv';
 import { interact } from "./scripts/interact";
+import { payMeInteract } from "./scripts/payme-interact";
 
 dotenv.config();
 
@@ -28,4 +29,9 @@ export default config;
 task('interact', 'Interacts with book library contract')
 .setAction(async (args, hre, runSuper) => {
   await interact(hre.ethers);
+});
+
+task('payme-interact', 'Interacts with pay me contract')
+.setAction(async (args, hre, runSuper) => {
+  await payMeInteract(hre.ethers);
 });

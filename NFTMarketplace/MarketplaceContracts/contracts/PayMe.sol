@@ -7,6 +7,11 @@ contract PayMe is Ownable {
   event PaymentReceived();
   event PaymentForItemReceived(uint);
   event BalanceWithdrawn();
+  event NonPaymentFunctionCalled();
+
+  function nonPayment() public {
+    emit NonPaymentFunctionCalled();
+  }
 
   function simplePay() public payable {
     emit PaymentReceived();
