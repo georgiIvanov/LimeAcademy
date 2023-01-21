@@ -1,5 +1,8 @@
 # PayMe project
-A simple payment contract we're using to test EIP681.
+A simple payment contract we're deploying on a test net and then
+using to test EIP681 and [QR code generation](https://brunobar79.github.io/eip681-link-generator/#).
+
+
 
 ## Interact
 Localhost

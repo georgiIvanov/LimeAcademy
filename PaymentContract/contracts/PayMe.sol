@@ -34,11 +34,9 @@ contract PayMe is Ownable {
   }
 
   function batchPayment(uint[] calldata itemIds) public payable {
-    console.log(itemIds.length);
-    if (itemIds.length * itemPrice < msg.value) {
+    if (itemIds.length * itemPrice > msg.value) {
       revert PaymentAmountNotEnough(itemIds, msg.value);
     }
-
     emit BatchPaymentReceived(itemIds, msg.value);
   }
 

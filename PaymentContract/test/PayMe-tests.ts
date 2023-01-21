@@ -1,5 +1,3 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { PayMe, PayMe__factory } from '../typechain-types';
@@ -29,11 +27,27 @@ describe("PayMe", () => {
     expect(await payMe.balance()).equal(0);
   });
 
-  it('Should pay for item', async () => {
+  it('Should receive payment for item', async () => {
     let payValue = helpers.ethToWei('0.01');
     await expect(payMe.payFor(15,{ value: payValue }))
     .to.emit(payMe, 'PaymentForItemReceived')
     .withArgs(15);
     expect(await payMe.balance()).equal(payValue);    
+  });
+
+  it('Should receive batch item payment', async () => {
+    let payValue = helpers.ethToWei('0.01');
+    await expect(payMe.batchPayment([3, 5, 7] ,{ value: payValue }))
+    .to.emit(payMe, 'BatchPaymentReceived')
+    .withArgs([3, 5, 7], payValue);
+    expect(await payMe.balance()).equal(payValue);   
+  });
+
+  it('Should receive insufficient batch item payment', async () => {
+    let payValue = helpers.ethToWei('0.0001');
+    await expect(payMe.batchPayment([3, 5, 7], { value: payValue }))
+    .to.be.revertedWithCustomError(payMe, 'PaymentAmountNotEnough')
+    .withArgs([3, 5, 7], payValue);
+    expect(await payMe.balance()).equal(0);
   });
 });
