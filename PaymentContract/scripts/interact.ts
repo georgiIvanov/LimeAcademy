@@ -1,5 +1,5 @@
 import { HardhatEthersHelpers } from "hardhat/types";
-import { TokenCollection, Marketplace } from "../typechain-types";
+import { PayMe } from "../typechain-types";
 import * as helpers from './helpers';
 
 export async function payMeInteract(ethers: HardhatEthersHelpers) {

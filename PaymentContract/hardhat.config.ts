@@ -1,7 +1,7 @@
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import dotenv from 'dotenv';
-import { interact } from "./scripts/interact";
+import { payMeInteract } from "./scripts/interact";
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
 
 export default config;
 
-task('interact', 'Interacts with book library contract')
+task('payme-interact', 'Interacts with pay me contract')
 .setAction(async (args, hre, runSuper) => {
-  await interact(hre.ethers);
+  await payMeInteract(hre.ethers);
 });

@@ -2,9 +2,9 @@ import { HardhatEthersHelpers } from "hardhat/types";
 import { ethers } from "hardhat";
 
 export const deployContract = async (ethers: HardhatEthersHelpers) => {
-  const marketplaceFactory = await ethers.getContractFactory("Marketplace");
-  const marketplace = await marketplaceFactory.deploy();  
-  console.log("Marketplace contract deployed to:", marketplace.address);
+  const payFactory = await ethers.getContractFactory('PayMe');
+  const payContract = await payFactory.deploy();
+  console.log('Pay contract deployed to:', payContract.address);
 }
 
 // Deploys contract to a network
