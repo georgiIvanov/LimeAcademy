@@ -21,7 +21,7 @@ export let ethToWei = (amount: string) => {
   return utils.parseUnits(amount, 'ether');
 }
 
-export let weiToEth = (ethers: HardhatEthersHelpers, amount: string | number | any) => {
+export let weiToEth = (amount: string | number | any) => {
   return utils.formatEther(amount);
 }
 
