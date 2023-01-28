@@ -25,6 +25,11 @@ const config: HardhatUserConfig = {
       url: process.env.INFURA_SEPOLIA,
       accounts: [process.env.SEPOLIA_PRIVATE_KEY || ''],
       chainId: 11155111
+    },
+    mumbai: {
+      url: process.env.INFURA_MUMBAI,
+      accounts: [process.env.MUMBAI_PRIVATE_KEY || ''],
+      chainId: 80001
     }
   }
 };
