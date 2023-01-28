@@ -10,10 +10,19 @@ Localhost
 
 ## Deploy contract on Goerli network
 1. Create `.env` file at root directory
-- Add key values for `GOERLI_PRIVATE_KEY` and `INFURA_API_KEY`
+- Add key values for `GOERLI_PRIVATE_KEY` and `INFURA_GOERLI`
 
 2. Run the following command
 `npx hardhat run scripts/deploy.ts --network goerli`
+
+## Deploy on other networks
+
+By using the same convention as in the example for Goerli,
+you can deploy ro sepolia or mumbai.
+
+You would first have to add `[network]_PRIVATE_KEY` & `INFURA_[network]` keys in `.env`.
+
+Then, `npx hardhat run scripts/deploy.ts --network [network]`
 
 ## Deploy contract on local node
 
