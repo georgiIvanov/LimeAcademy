@@ -17,8 +17,14 @@ const config: HardhatUserConfig = {
   },
   networks: {
     goerli: {
-      url: process.env.INFURA_API_KEY,
-      accounts: [process.env.GOERLI_PRIVATE_KEY || '']
+      url: process.env.INFURA_GOERLI,
+      accounts: [process.env.GOERLI_PRIVATE_KEY || ''],
+      chainId: 5
+    },
+    sepolia: {
+      url: process.env.INFURA_SEPOLIA,
+      accounts: [process.env.SEPOLIA_PRIVATE_KEY || ''],
+      chainId: 11155111
     }
   }
 };
